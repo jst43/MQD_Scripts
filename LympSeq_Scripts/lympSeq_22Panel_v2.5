@@ -17,38 +17,6 @@ All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 
-##BEFORE STARTING: The folder should contain fastq.gz files, check if the duplicates are called as DUP or dup.
-##Remove S code from all samples
-#ls *_L001_R1_001.fastq.gz > Scode.txt
-#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" Scode.txt
-#vim -c "%s/_S\d\+//g|wq" Scode.txt
-#for k in `cat Scode.txt`; do
-#       mv ${k}_S*_L001_R1_001.fastq.gz ${k}_L001_R1_001.fastq.gz
-#       mv ${k}_S*_L001_R2_001.fastq.gz ${k}_L001_R2_001.fastq.gz
-#done
-##If samples duplicates are called as DUP1/DUP2 or -/dup:
-#ls *_L001_R1_001.fastq.gz > homognames.txt
-#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" homognames.txt
-#vim -c "%s/_S\d\+//g|wq" homognames.txt
-#vim -c "%s/-Dup1//g|wq" homognames.txt
-#vim -c "%s/-Dup2//g|wq" homognames.txt
-#vim -c "%s/-DUP1//g|wq" homognames.txt
-#vim -c "%s/-DUP2//g|wq" homognames.txt
-#vim -c "%s/-dup//g|wq" homognames.txt
-
-#for k in `cat homognames.txt`; do
-#If is DUP1/DUP2
-#       mv ${k}-DUP1_L001_R1_001.fastq.gz ${k}-Dup1_L001_R1_001.fastq.gz
-#       mv ${k}-DUP1_L001_R2_001.fastq.gz ${k}-Dup1_L001_R2_001.fastq.gz
-#       mv ${k}-DUP2_L001_R1_001.fastq.gz ${k}-Dup2_L001_R1_001.fastq.gz
-#       mv ${k}-DUP2_L001_R2_001.fastq.gz ${k}-Dup2_L001_R2_001.fastq.gz
-#If is -/dup
-#       mv ${k}_L001_R1_001.fastq.gz ${k}-Dup1_L001_R1_001.fastq.gz
-#       mv ${k}_L001_R2_001.fastq.gz ${k}-Dup1_L001_R2_001.fastq.gz
-#       mv ${k}-dup_L001_R1_001.fastq.gz ${k}-Dup2_L001_R1_001.fastq.gz
-#       mv ${k}-dup_L001_R2_001.fastq.gz ${k}-Dup2_L001_R2_001.fastq.gz
-#done
-
 cd /home/joe/Analysis/Ongoing/ValidationLibraryTesting/22GenePanel/fastq_files
 
 #Create list of sample names including Dup1-Dup2
