@@ -112,12 +112,3 @@ for i in `cat names.txt`; do
 done
 
 echo "Analysis Finished"
-
-#Building result files
-ls *_SNVs.myanno.hg38_multianno.txt > librarynames_SNVs.txt
-for i in `cat librarynames_SNVs.txt`; do
-        sed -i "s/^/${i}\t/" ${i}
-done
-
-cat *_SNVs.myanno.hg38_multianno.txt > Library_SNVs_hg38_multianno.txt
-vim -c "%s/_SNVs.myanno.hg38_multianno.txt//g|wq" Library_SNVs_hg38_multianno.txt
