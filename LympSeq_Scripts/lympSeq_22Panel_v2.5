@@ -48,12 +48,17 @@ done
 
 cd $filepath
 
+#Make directories
+mkdir trimmed_fastq
+mkdir sorted_bam
+mkdir recal_bam
+mkdir coverage
+mkdir vcf_anno
+mkdir tempfiles
+
 #Create list of sample names including Dup1-Dup2
 ls *_L001_R1_001.fastq.gz > samples.txt
 vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
-mv samples.txt ../22Panel_out/
-
-cd /home/joe/Analysis/Ongoing/ValidationLibraryTesting/22GenePanel/22Panel_out
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
@@ -63,55 +68,49 @@ for k in `cat samples.txt`; do
 #       firefox ${k}fastqc ${k}_L001_R1_001_fastqc.html &
 #       firefox ${k}fastqc ${k}_L001_R2_001_fastqc.html &
 #Trimmed
-	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ../fastq_files/${k}_L001_R1_001.fastq.gz | gzip -c > ${k}.1.fq.gz
-	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ../fastq_files/${k}_L001_R2_001.fastq.gz | gzip -c > ${k}.2.fq.gz
-	perl ${TRIM_GALORE} --paired --length 50 ${k}.1.fq.gz ${k}.2.fq.gz
+	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R1_001.fastq.gz | gzip -c > ./tempfiles/${k}.1.fq.gz
+	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R2_001.fastq.gz | gzip -c > ./tempfiles/${k}.2.fq.gz
+	perl ${TRIM_GALORE} --paired --length 50 --output_dir ./trimmed_fastq/ ${k}.1.fq.gz ${k}.2.fq.gz
 #Alignment 1000Genomes(Hg38)
-	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1_val_1.fq.gz ${k}.2_val_2.fq.gz > ${k}.sam
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./trimmed_fastq/${k}.1_val_1.fq.gz ./trimmed_fastq/${k}.2_val_2.fq.gz > ./tempfiles/${k}.sam
 #Create bam file and clean + sort + index
-	samtools_1.2 view -bS ${k}.sam > ${k}.bam
-	samtools_1.2 sort ${k}.bam ${k}.sorted
-	samtools_1.2 index ${k}.sorted.bam
-	rm ${k}.sam
-	rm ${k}.bam
+	samtools_1.2 view -bS ./tempfiles/${k}.sam > ./tempfiles/${k}.bam
+	samtools_1.2 sort ./tempfiles/${k}.bam ./sorted_bam/${k}.sorted
+	samtools_1.2 index ./sorted_bam/${k}.sorted.bam
 #Realigned and Indels
-	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ${k}.sorted.bam -o ${k}.bam.list -drf DuplicateRead
-	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ${k}.sorted.bam -targetIntervals ${k}.bam.list -o ${k}.sorted.realigned.bam
-	rm ${k}.bam.list
+	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -o ./tempfiles/${k}.bam.list -drf DuplicateRead
+	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 #Recalibrator and quality control
-	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ${k}.sorted.realigned.bam -l info -knownSites ${All} -o ${k}.sorted.realigned.table -drf DuplicateRead
-	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ${k}.sorted.realigned.bam -l INFO -BQSR ${k}.sorted.realigned.table -o ${k}.sorted.realigned.recal.bam
-	java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ${k}.coverage -I ${k}.sorted.realigned.recal.bam -L ../amplicons_22Panel.bed
+	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table -drf DuplicateRead
+	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
+	java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L amplicons_22Panel.bed
 done
 
 #Coverage
-ls *.sorted.bam > input_sortedbams.list
-ls *.sorted.realigned.recal.bam > input_recalbams.list
+ls ./sorted_bam/*.sorted.bam > input_sortedbams.list
+ls ./recal_bam/*.sorted.realigned.recal.bam > input_recalbams.list
 
-java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o Library_sortedbam.coverage -I input_sortedbams.list -L ../amplicons_22Panel.bed
-java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o Library_recalbam.coverage -I input_recalbams.list -L ../amplicons_22Panel.bed
+java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_sortedbam.coverage -I input_sortedbams.list -L amplicons_22Panel.bed
+java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_recalbam.coverage -I input_recalbams.list -L amplicons_22Panel.bed
 
 #Calling variants + Filtering + Annotation
-ls *-Dup1.sorted.realigned.recal.bam > names.txt
+ls ./recal_bam/*-Dup1.sorted.realigned.recal.bam > names.txt
 vim -c "%s/-Dup1.sorted.realigned.recal.bam//g|wq" names.txt
 
 for i in `cat names.txt`; do
-        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ${i}-Dup1.sorted.realigned.recal.bam -I ${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ${i}.vcf -drf DuplicateRead
-        vcftools_0.1.13 --vcf ${i}.vcf --exclude ../degeneratePrimers_22Panel.txt --recode --out ${i}_RDP
-        mv ${i}_RDP.recode.vcf ${i}.vcf
-        rm ${i}.sorted.realigned.bam
+        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
+        vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --exclude degeneratePrimers_22Panel.txt --recode --out ./tempfiles/${i}_RDP
+        mv ./tempfiles/${i}_RDP.recode.vcf ./tempfiles/${i}.vcf
         rm ${i}_RDP.log
-        vcftools_0.1.13 --vcf ${i}.vcf --minQ 30 --recode --out ${i}_F1
-        vcftools_0.1.13 --vcf ${i}_F1.recode.vcf --min-meanDP 50 --recode --out ${i}_F2
-        mv ${i}_F2.recode.vcf ${i}_F2.vcf
-        vcftools_0.1.13 --vcf ${i}_F2.vcf --max-missing 1 --recode --out ${i}_F3
+        vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --minQ 30 --recode --out ./tempfiles/${i}_F1
+        vcftools_0.1.13 --vcf ./tempfiles/${i}_F1.recode.vcf --min-meanDP 50 --recode --out ./tempfiles/${i}_F2
+        mv ./tempfiles/${i}_F2.recode.vcf ./tempfiles/${i}_F2.vcf
+        vcftools_0.1.13 --vcf ./tempfiles/${i}_F2.vcf --max-missing 1 --recode --out ./tempfiles/${i}_F3
         echo "Duplicates of ${i} were merged"
-        rm ${i}_F2.vcf
-        rm ${i}_F1.recode.vcf
         rm *.vcfidx
         rm *.log
 #Annotation
-        perl ${TABLE_ANNOVAR} ${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+        perl ${TABLE_ANNOVAR} ./tempfiles/${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
 
 echo "Analysis Finished"
