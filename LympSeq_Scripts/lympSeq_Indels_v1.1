@@ -99,10 +99,3 @@ for i in `cat names.txt`; do
 done
 echo "lympSeq_Indels analysis was completed."
 
-#Building result files
-ls *_D+SI.myanno.hg38_multianno.txt > librarynames_D+SI.txt
-for i in `cat librarynames_D+SI.txt`; do
-        sed -i "s/^/${i}\t/" ${i}
-done
-cat *_D+SI.myanno.hg38_multianno.txt > Library_D+SI_hg38_multianno.txt
-vim -c "%s/_D+SI.myanno.hg38_multianno.txt//g|wq" Library_D+SI_hg38_multianno.txt
