@@ -5,8 +5,34 @@ TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
 
-cp header.txt ./Pindel_out
-cd 8Panel_out
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
+
+while getopts ":f:h" opt; do
+	case $opt in
+		f)
+			filepath=$OPTARG >&2
+			echo "Filepath is $OPTARG" >&2
+			;;
+		h)
+			echo "Usage: $0 [-f] FILEPATH" >&2
+			echo
+			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "	-h		display this help message"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
 
 #Create list of name samples
 ls *.sorted.bam > samplesPindel.txt
