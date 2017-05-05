@@ -1,0 +1,129 @@
+#!/bin/bash
+echo "######################################################"
+echo "#                   lympSeq_v2.0                     #"
+echo "#    Writen by Joe Thompson (jst43@cam.ac.uk)        #"
+echo "#                                                    #"
+echo "#                  April 4th 2017                    #"
+echo "# This Bash script uses the following software under #"
+echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
+echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
+echo "#                                                    #"
+echo "######################################################"
+TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
+hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
+PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
+GATK="/media/eguz/darwin/Resources/Software/GenomeAnalysisTK.jar"
+All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
+TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
+humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
+
+##BEFORE STARTING: The folder should contain fastq.gz files, check if the duplicates are called as DUP or dup.
+##Remove S code from all samples
+#ls *_L001_R1_001.fastq.gz > Scode.txt
+#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" Scode.txt
+#vim -c "%s/_S\d\+//g|wq" Scode.txt
+#for k in `cat Scode.txt`; do
+#       mv ${k}_S*_L001_R1_001.fastq.gz ${k}_L001_R1_001.fastq.gz
+#       mv ${k}_S*_L001_R2_001.fastq.gz ${k}_L001_R2_001.fastq.gz
+#done
+##If samples duplicates are called as DUP1/DUP2 or -/dup:
+#ls *_L001_R1_001.fastq.gz > homognames.txt
+#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" homognames.txt
+#vim -c "%s/_S\d\+//g|wq" homognames.txt
+#vim -c "%s/-Dup1//g|wq" homognames.txt
+#vim -c "%s/-Dup2//g|wq" homognames.txt
+#vim -c "%s/-DUP1//g|wq" homognames.txt
+#vim -c "%s/-DUP2//g|wq" homognames.txt
+#vim -c "%s/-dup//g|wq" homognames.txt
+
+#for k in `cat homognames.txt`; do
+#If is DUP1/DUP2
+#       mv ${k}-DUP1_L001_R1_001.fastq.gz ${k}-Dup1_L001_R1_001.fastq.gz
+#       mv ${k}-DUP1_L001_R2_001.fastq.gz ${k}-Dup1_L001_R2_001.fastq.gz
+#       mv ${k}-DUP2_L001_R1_001.fastq.gz ${k}-Dup2_L001_R1_001.fastq.gz
+#       mv ${k}-DUP2_L001_R2_001.fastq.gz ${k}-Dup2_L001_R2_001.fastq.gz
+#If is -/dup
+#       mv ${k}_L001_R1_001.fastq.gz ${k}-Dup1_L001_R1_001.fastq.gz
+#       mv ${k}_L001_R2_001.fastq.gz ${k}-Dup1_L001_R2_001.fastq.gz
+#       mv ${k}-dup_L001_R1_001.fastq.gz ${k}-Dup2_L001_R1_001.fastq.gz
+#       mv ${k}-dup_L001_R2_001.fastq.gz ${k}-Dup2_L001_R2_001.fastq.gz
+#done
+
+cd /home/joe/Analysis/Ongoing/ValidationLibraryTesting/22GenePanel/fastq_files
+
+#Create list of sample names including Dup1-Dup2
+ls *_L001_R1_001.fastq.gz > samples.txt
+vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
+mv samples.txt ../22Panel_out/
+
+cd /home/joe/Analysis/Ongoing/ValidationLibraryTesting/22GenePanel/22Panel_out
+
+for k in `cat samples.txt`; do
+#Check sequencing quality
+#       fastqc ${k}_L001_R1_001.fastq.gz
+#       fastqc ${k}_L001_R2_001.fastq.gz
+#To visualize the quality results
+#       firefox ${k}fastqc ${k}_L001_R1_001_fastqc.html &
+#       firefox ${k}fastqc ${k}_L001_R2_001_fastqc.html &
+#Trimmed
+	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ../fastq_files/${k}_L001_R1_001.fastq.gz | gzip -c > ${k}.1.fq.gz
+	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ../fastq_files/${k}_L001_R2_001.fastq.gz | gzip -c > ${k}.2.fq.gz
+	perl ${TRIM_GALORE} --paired --length 50 ${k}.1.fq.gz ${k}.2.fq.gz
+#Alignment 1000Genomes(Hg38)
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1_val_1.fq.gz ${k}.2_val_2.fq.gz > ${k}.sam
+#Create bam file and clean + sort + index
+	samtools_1.2 view -bS ${k}.sam > ${k}.bam
+	samtools_1.2 sort ${k}.bam ${k}.sorted
+	samtools_1.2 index ${k}.sorted.bam
+	rm ${k}.sam
+	rm ${k}.bam
+#Realigned and Indels
+	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ${k}.sorted.bam -o ${k}.bam.list -drf DuplicateRead
+	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ${k}.sorted.bam -targetIntervals ${k}.bam.list -o ${k}.sorted.realigned.bam
+	rm ${k}.bam.list
+#Recalibrator and quality control
+	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ${k}.sorted.realigned.bam -l info -knownSites ${All} -o ${k}.sorted.realigned.table -drf DuplicateRead
+	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ${k}.sorted.realigned.bam -l INFO -BQSR ${k}.sorted.realigned.table -o ${k}.sorted.realigned.recal.bam
+	java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ${k}.coverage -I ${k}.sorted.realigned.recal.bam -L ../amplicons_22Panel.bed
+done
+
+#Coverage
+ls *.sorted.bam > input_sortedbams.list
+ls *.sorted.realigned.recal.bam > input_recalbams.list
+
+java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o Library_sortedbam.coverage -I input_sortedbams.list -L ../amplicons_22Panel.bed
+java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o Library_recalbam.coverage -I input_recalbams.list -L ../amplicons_22Panel.bed
+
+#Calling variants + Filtering + Annotation
+ls *-Dup1.sorted.realigned.recal.bam > names.txt
+vim -c "%s/-Dup1.sorted.realigned.recal.bam//g|wq" names.txt
+
+for i in `cat names.txt`; do
+        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ${i}-Dup1.sorted.realigned.recal.bam -I ${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ${i}.vcf -drf DuplicateRead
+        vcftools_0.1.13 --vcf ${i}.vcf --exclude ../degeneratePrimers_22Panel.txt --recode --out ${i}_RDP
+        mv ${i}_RDP.recode.vcf ${i}.vcf
+        rm ${i}.sorted.realigned.bam
+        rm ${i}_RDP.log
+        vcftools_0.1.13 --vcf ${i}.vcf --minQ 30 --recode --out ${i}_F1
+        vcftools_0.1.13 --vcf ${i}_F1.recode.vcf --min-meanDP 50 --recode --out ${i}_F2
+        mv ${i}_F2.recode.vcf ${i}_F2.vcf
+        vcftools_0.1.13 --vcf ${i}_F2.vcf --max-missing 1 --recode --out ${i}_F3
+        echo "Duplicates of ${i} were merged"
+        rm ${i}_F2.vcf
+        rm ${i}_F1.recode.vcf
+        rm *.vcfidx
+        rm *.log
+#Annotation
+        perl ${TABLE_ANNOVAR} ${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+done
+
+echo "Analysis Finished"
+
+#Building result files
+ls *_SNVs.myanno.hg38_multianno.txt > librarynames_SNVs.txt
+for i in `cat librarynames_SNVs.txt`; do
+        sed -i "s/^/${i}\t/" ${i}
+done
+
+cat *_SNVs.myanno.hg38_multianno.txt > Library_SNVs_hg38_multianno.txt
+vim -c "%s/_SNVs.myanno.hg38_multianno.txt//g|wq" Library_SNVs_hg38_multianno.txt
