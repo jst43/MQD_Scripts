@@ -58,7 +58,7 @@ mkdir tempfiles
 
 #Create list of sample names including Dup1-Dup2
 ls *_L001_R1_001.fastq.gz > samples.txt
-vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
+sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
@@ -70,7 +70,7 @@ for k in `cat samples.txt`; do
 #Trimmed
 	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R1_001.fastq.gz | gzip -c > ./tempfiles/${k}.1.fq.gz
 	cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R2_001.fastq.gz | gzip -c > ./tempfiles/${k}.2.fq.gz
-	perl ${TRIM_GALORE} --paired --length 50 --output_dir ./trimmed_fastq/ ${k}.1.fq.gz ${k}.2.fq.gz
+	perl ${TRIM_GALORE} --paired --length 50 --output_dir ./trimmed_fastq/ ./tempfiles/${k}.1.fq.gz ./tempfiles/${k}.2.fq.gz
 #Alignment 1000Genomes(Hg38)
 	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./trimmed_fastq/${k}.1_val_1.fq.gz ./trimmed_fastq/${k}.2_val_2.fq.gz > ./tempfiles/${k}.sam
 #Create bam file and clean + sort + index
@@ -95,20 +95,18 @@ java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_re
 
 #Calling variants + Filtering + Annotation
 ls ./recal_bam/*-Dup1.sorted.realigned.recal.bam > names.txt
-vim -c "%s/-Dup1.sorted.realigned.recal.bam//g|wq" names.txt
+sed -i 's|-Dup1.sorted.realigned.recal.bam||' names.txt
+sed -i 's|./recal_bam/||' names.txt
 
 for i in `cat names.txt`; do
-        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
+        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics ./tempfiles/snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
         vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --exclude degeneratePrimers_22Panel.txt --recode --out ./tempfiles/${i}_RDP
         mv ./tempfiles/${i}_RDP.recode.vcf ./tempfiles/${i}.vcf
-        rm ${i}_RDP.log
         vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --minQ 30 --recode --out ./tempfiles/${i}_F1
         vcftools_0.1.13 --vcf ./tempfiles/${i}_F1.recode.vcf --min-meanDP 50 --recode --out ./tempfiles/${i}_F2
         mv ./tempfiles/${i}_F2.recode.vcf ./tempfiles/${i}_F2.vcf
         vcftools_0.1.13 --vcf ./tempfiles/${i}_F2.vcf --max-missing 1 --recode --out ./tempfiles/${i}_F3
         echo "Duplicates of ${i} were merged"
-        rm *.vcfidx
-        rm *.log
 #Annotation
         perl ${TABLE_ANNOVAR} ./tempfiles/${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
