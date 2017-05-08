@@ -40,13 +40,14 @@ cd $filepath
 mkdir pindeltemp
 mkdir pindel_anno
 
+cd pindeltemp
 
 #Create list of name samples
-ls ./sorted_bam/*.sorted.bam > samplesPindel.txt
-sed -i 's|./sorted_bam/||' samplesPindel.txt
+ls ../sorted_bam/*.sorted.bam > samplesPindel.txt
+sed -i 's|../sorted_bam/||' samplesPindel.txt
 sed -i 's|.sorted.bam||' samplesPindel.txt
 
-cd pindeltemp
+#cd pindeltemp
 
 #Create files: pindelinput.txt
 for k in `cat samplesPindel.txt`; do
@@ -95,7 +96,6 @@ for i in `cat names.txt`; do
         cat ../header.txt ${i}_headless.vcf > ${i}_NewHead.vcf
 #Annotation hg38
         perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ../pindel_anno/${i}_DSI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
-	mv ${i}_DSI.myanno* ../pindel_anno/
 done
 echo "lympSeq_Indels analysis was completed."
 
