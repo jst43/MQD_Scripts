@@ -1,0 +1,101 @@
+#!/bin/bash
+hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
+hg38Dict="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.dict"
+TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
+humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
+PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
+
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
+
+while getopts ":f:h" opt; do
+	case $opt in
+		f)
+			filepath=$OPTARG >&2
+			echo "Filepath is $OPTARG" >&2
+			;;
+		h)
+			echo "Usage: $0 [-f] FILEPATH" >&2
+			echo
+			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "	-h		display this help message"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
+
+cd $filepath
+
+#Make Directories
+mkdir pindeltemp
+mkdir pindel_anno
+
+cd pindeltemp
+
+#Create list of name samples
+ls ../sorted_bam/*.sorted.bam > samplesPindel.txt
+sed -i 's|../sorted_bam/||' samplesPindel.txt
+sed -i 's|.sorted.bam||' samplesPindel.txt
+
+#cd pindeltemp
+
+#Create files: pindelinput.txt
+for k in `cat samplesPindel.txt`; do
+        ls ../sorted_bam/${k}.sorted.bam > ${k}_pindelinput.txt
+	sed -i 's|\(.\+\)\.sorted.bam|\1\.sorted.bam\t350\t\1|' ${k}_pindelinput.txt
+done
+
+#Run Pindel
+for i in `cat samplesPindel.txt`; do
+        pindel -f ${hg38} -i ${i}_pindelinput.txt -c ALL -o ${i}
+#Create vcf files of deletion and insertion out of pindel
+        pindel2vcf -p ${i}_D -r ${hg38} -R GRCh38 -d 201312 -G -v ${i}_D.vcf
+        pindel2vcf -p ${i}_SI -r ${hg38} -R GRCh38 -d 201312 -G -v ${i}_SI.vcf
+done
+
+echo "vcf files for deletions and insertions were made."
+#create list of name sample no-duplicates
+ls *-Dup1_D.vcf > names.txt
+sed -i 's|_D.vcf||' names.txt
+sed -i 's|-Dup1||' names.txt
+
+for i in `cat names.txt`; do
+#Merging both duplicates and filtering vcf
+        bgzip -c ${i}-Dup1_D.vcf > ${i}-Dup1_D.vcf.gz
+        tabix -p vcf ${i}-Dup1_D.vcf.gz
+        bgzip -c ${i}-Dup2_D.vcf > ${i}-Dup2_D.vcf.gz
+        tabix -p vcf ${i}-Dup2_D.vcf.gz
+        vcf-merge ${i}-Dup1_D.vcf.gz ${i}-Dup2_D.vcf.gz > ${i}_D.vcf
+        vcftools_0.1.13 --vcf ${i}_D.vcf --max-missing 1 --recode --out ${i}_D_F1
+        bgzip -c ${i}-Dup1_SI.vcf > ${i}-Dup1_SI.vcf.gz
+        tabix -p vcf ${i}-Dup1_SI.vcf.gz
+        bgzip -c ${i}-Dup2_SI.vcf > ${i}-Dup2_SI.vcf.gz
+        tabix -p vcf ${i}-Dup2_SI.vcf.gz
+        vcf-merge ${i}-Dup1_SI.vcf.gz ${i}-Dup2_SI.vcf.gz > ${i}_SI.vcf
+        vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
+        mv ${i}_D_F1.recode.vcf ${i}_D_F1.vcf
+        mv ${i}_SI_F1.recode.vcf ${i}_SI_F1.vcf
+#Merging Deletion and Insertion
+        bgzip -c ${i}_D_F1.vcf > ${i}_D.vcf.gz
+        bgzip -c ${i}_SI_F1.vcf > ${i}_SI.vcf.gz
+        tabix -p vcf ${i}_D.vcf.gz
+        tabix -p vcf ${i}_SI.vcf.gz
+        vcf-concat ${i}_D.vcf.gz ${i}_SI.vcf.gz > ${i}_DSI.vcf
+        java -jar ${PICARD} SortVcf I=${i}_DSI.vcf O=${i}_DSI.sorted.vcf SD=${hg38Dict}
+        less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
+        cat ../header.txt ${i}_headless.vcf > ${i}_NewHead.vcf
+#Annotation hg38
+        perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ../pindel_anno/${i}_DSI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+done
+echo "lympSeq_Indels analysis was completed."
+
