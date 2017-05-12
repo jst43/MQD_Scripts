@@ -34,12 +34,18 @@ while getopts ":f:g:h" opt; do
 				echo "Using $OPTARG Gene Panel"
 				ampliconfile="${fluidigmPrefix}/Amplicons/amplicons_${OPTARG}Panel.bed"
 				primerfile="${fludigmPrefix}/DegeneratePrimers/degeneratePrimers_${OPTARG}Panel.txt"
+			else
+				echo "Unrecognised gene panel; current gene panels are 8, 10, and 22"
+				exit 1
 			fi
 			;;
 		h)
 			echo "Usage: $0 [-f] FILEPATH" >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "	-g		gene panel, provides links to the amplicon and"
+			echo "			degnerate primers files. Current options are"
+			echo "			8, 10, and 22"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -53,6 +59,11 @@ while getopts ":f:g:h" opt; do
 			;;
 	esac
 done
+
+if [ -z $filepath ] || [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
 
 cd $filepath
 
