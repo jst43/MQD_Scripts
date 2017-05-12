@@ -25,7 +25,7 @@ while getopts ":f:g:h" opt; do
 			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ]; then
 				genepanel=$OPTARG
 				ampliconfile="${fluidigmPrefix}Amplicons/amplicons_${genepanel}Panel.bed"
-				primerfile="${fludigmPrefix}DegeneratePrimers/degeneratePrimers_${genepanel}Panel.txt"
+				primerfile="${fluidigmPrefix}DegeneratePrimers/degeneratePrimers_${genepanel}Panel.txt"
 			else
 				echo "Unrecognised gene panel; current gene panels are 8, 10, and 22"
 				exit 1
