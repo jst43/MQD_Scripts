@@ -68,7 +68,7 @@ mkdir tempfiles
 
 #Create list of sample names including Dup1-Dup2
 ls *_L001_R1_001.fastq.gz > samples.txt
-sed -i 's/|_L001_R1_001.fastq.gz||' samples.txt
+sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
