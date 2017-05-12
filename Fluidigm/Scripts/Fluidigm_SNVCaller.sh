@@ -16,17 +16,25 @@ GATK="/media/eguz/darwin/Resources/Software/GenomeAnalysisTK.jar"
 All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
+fluidigmPrefix="/home/joe/MQD_Scripts/Fluidigm/Dependent_Files/"
 
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
     exit 1
 fi
 
-while getopts ":f:h" opt; do
+while getopts ":f:g:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
 			echo "Filepath is $OPTARG" >&2
+			;;
+		g)
+			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ]; then
+				echo "Using $OPTARG Gene Panel"
+				ampliconfile="${fluidigmPrefix}/Amplicons/amplicons_${OPTARG}Panel.bed"
+				primerfile="${fludigmPrefix}/DegeneratePrimers/degeneratePrimers_${OPTARG}Panel.txt"
+			fi
 			;;
 		h)
 			echo "Usage: $0 [-f] FILEPATH" >&2
@@ -47,6 +55,8 @@ while getopts ":f:h" opt; do
 done
 
 cd $filepath
+
+exit 1
 
 #Make directories
 mkdir trimmed_fastq
