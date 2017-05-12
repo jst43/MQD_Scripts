@@ -1,14 +1,4 @@
 #!/bin/bash
-echo "######################################################"
-echo "#                   lympSeq_v2.0                     #"
-echo "#    Writen by Joe Thompson (jst43@cam.ac.uk)        #"
-echo "#                                                    #"
-echo "#                  April 4th 2017                    #"
-echo "# This Bash script uses the following software under #"
-echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
-echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
-echo "#                                                    #"
-echo "######################################################"
 TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
 hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
@@ -30,9 +20,9 @@ while getopts ":f:g:h" opt; do
 			;;
 		g)
 			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ]; then
-				echo "Using $OPTARG Gene Panel"
-				ampliconfile="${fluidigmPrefix}/Amplicons/amplicons_${OPTARG}Panel.bed"
-				primerfile="${fludigmPrefix}/DegeneratePrimers/degeneratePrimers_${OPTARG}Panel.txt"
+				genepanel=$OPTARG
+				ampliconfile="${fluidigmPrefix}/Amplicons/amplicons_${genepanel}Panel.bed"
+				primerfile="${fludigmPrefix}/DegeneratePrimers/degeneratePrimers_${genepanel}Panel.txt"
 			else
 				echo "Unrecognised gene panel; current gene panels are 8, 10, and 22"
 				exit 1
@@ -62,9 +52,27 @@ done
 if [ -z $filepath ] || [ ! -d $filepath ]; then
 	echo "This script requires a valid filepath to the fastq file directory"
 	exit 1
-else
-	echo "Filepath is $filepath"
 fi
+
+if [ -z $genepanel ]; then
+	echo "This script requires a gene panel; current gene panels are 8, 10, and 22"
+	exit 1
+fi
+
+echo "######################################################"
+echo "#                Fluidigm SNV Caller                 #"
+echo "#    Writen by Joe Thompson (jst43@cam.ac.uk)        #"
+echo "#                                                    #"
+echo "#                  April 4th 2017                    #"
+echo "# This Bash script uses the following software under #"
+echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
+echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
+echo "Filepath is $filepath"
+echo ""
+echo "Gene Panel is $genepanel"
 
 cd $filepath
 
@@ -72,8 +80,8 @@ exit 1
 
 #Make directories
 mkdir trimmed_fastq
-mkdir sorted_bam
 mkdir recal_bam
+mkdir sorted_bam
 mkdir coverage
 mkdir vcf_anno
 mkdir tempfiles
