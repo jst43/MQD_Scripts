@@ -19,7 +19,7 @@ humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 
 #Create list of sample names including Dup1-Dup2
 ls *_L001_R1_001.fastq.gz > samples.txt
-vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
+sed -i 's/|_L001_R1_001.fastq.gz||' samples.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
@@ -55,12 +55,3 @@ for k in `cat samples.txt`; do
 	java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ${k}.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -A AlleleBalance -dcov 10000 --max_alternate_alleles 40 -o ${k}.vcf -drf DuplicateRead
 	perl ${TABLE_ANNOVAR} ${k}.vcf ${humandb} -buildver hg38 -out ${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
-
-#Building result files
-ls *_SNVs.myanno.hg38_multianno.txt > librarynames_SNVs.txt
-for i in `cat librarynames_SNVs.txt`; do
-	sed -i "s/^/${i}\t/" ${i}
-done
-
-cat *_SNVs.myanno.hg38_multianno.txt > Library_SNVs_hg38_multianno.txt
-vim -c "%s/_SNVs.myanno.hg38_multianno.txt//g|wq" Library_SNVs_hg38_multianno.txt
