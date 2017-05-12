@@ -1,4 +1,6 @@
 #!/bin/bash
+
+#CONSTANTS
 TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
 hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
@@ -8,6 +10,7 @@ TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 fluidigmPrefix="/home/joe/MQD_Scripts/Fluidigm/Dependent_Files/"
 
+#COMMANDLINE VARIABLES
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
     exit 1
@@ -59,6 +62,7 @@ if [ -z $genepanel ]; then
 	exit 1
 fi
 
+#SCRIPT
 echo "######################################################"
 echo "#                Fluidigm SNV Caller                 #"
 echo "#    Writen by Joe Thompson (jst43@cam.ac.uk)        #"
@@ -75,8 +79,6 @@ echo ""
 echo "Gene Panel is $genepanel"
 
 cd $filepath
-
-exit 1
 
 #Make directories
 mkdir trimmed_fastq
@@ -119,7 +121,6 @@ done
 #Coverage
 ls ./sorted_bam/*.sorted.bam > input_sortedbams.list
 ls ./recal_bam/*.sorted.realigned.recal.bam > input_recalbams.list
-
 java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_sortedbam.coverage -I input_sortedbams.list -L $ampliconfile
 java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_recalbam.coverage -I input_recalbams.list -L $ampliconfile
 
