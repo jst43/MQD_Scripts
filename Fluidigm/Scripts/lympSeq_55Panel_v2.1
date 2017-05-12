@@ -1,14 +1,5 @@
 #!/bin/bash
-echo "######################################################"
-echo "#                 lympSeq_55Panel_v2.1                #"
-echo "#    Writen by Eguzkine Ochoa (eguzki8a@gmail.com)   #"
-echo "#                                                    #"
-echo "#                  January 31st 2017                 #"
-echo "# This Bash script uses the following software under #"
-echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
-echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
-echo "#                                                    #"
-echo "######################################################"
+#CONSTANTS
 TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
 hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
@@ -45,6 +36,26 @@ while getopts ":f:h" opt; do
 			;;
 	esac
 done
+
+if [ -z $filepath ] || [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
+
+#SCRIPT
+echo "######################################################"
+echo "#                lympSeq_55Panel_v2.1                #"
+echo "#    Writen by Eguzkine Ochoa (eguzki8a@gmail.com)   #"
+echo "#                                                    #"
+echo "#                  January 31st 2017                 #"
+echo "# This Bash script uses the following software under #"
+echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
+echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
+echo "Filepath is $filepath"
+echo ""
 
 cd $filepath
 
