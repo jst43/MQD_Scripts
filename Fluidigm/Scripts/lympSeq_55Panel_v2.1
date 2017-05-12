@@ -17,55 +17,45 @@ All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 
-##BEFORE TO START: In the folder should be fastq.gz files and check if the duplicates are called as DUP or dup.
-##Remove S code from all samples
-#ls *_L001_R1_001.fastq.gz > Scode.txt
-#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" Scode.txt
-#vim -c "%s/_S\d\+//g|wq" Scode.txt
-#for k in `cat Scode.txt`; do
-#	mv ${k}_S*_L001_R1_001.fastq.gz ${k}_L001_R1_001.fastq.gz
-#	mv ${k}_S*_L001_R2_001.fastq.gz ${k}_L001_R2_001.fastq.gz
-#done
-
 #Create list of sample names including Dup1-Dup2
-#ls *_L001_R1_001.fastq.gz > samples.txt
-#vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
+ls *_L001_R1_001.fastq.gz > samples.txt
+vim -c "%s/_L001_R1_001.fastq.gz//g|wq" samples.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
-#	fastqc ${k}_L001_R1_001.fastq.gz
-#	fastqc ${k}_L001_R2_001.fastq.gz
+	fastqc ${k}_L001_R1_001.fastq.gz
+	fastqc ${k}_L001_R2_001.fastq.gz
 #Trimmed
- #       cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R1_001.fastq.gz | gzip -c > ${k}.1.fq.gz
-  #      cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R2_001.fastq.gz | gzip -c > ${k}.2.fq.gz
-#	perl ${TRIM_GALORE} --paired --length 50 ${k}.1.fq.gz ${k}.2.fq.gz
+        cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R1_001.fastq.gz | gzip -c > ${k}.1.fq.gz
+        cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R2_001.fastq.gz | gzip -c > ${k}.2.fq.gz
+	perl ${TRIM_GALORE} --paired --length 50 ${k}.1.fq.gz ${k}.2.fq.gz
 #Check sequencing quality after trimming
- #       fastqc ${k}.1_val_1.fq.gz
-  #      fastqc ${k}.2_val_2.fq.gz
+        fastqc ${k}.1_val_1.fq.gz
+        fastqc ${k}.2_val_2.fq.gz
 #Decompress
-   #     gunzip ${k}.1_val_1.fq.gz
-    #    gunzip ${k}.2_val_2.fq.gz
+        gunzip ${k}.1_val_1.fq.gz
+        gunzip ${k}.2_val_2.fq.gz
 #Alignment 1000Genomes(Hg38)
-#        bwa_0.7.12 aln -t 38 ${hg38} ${k}.1_val_1.fq > ${k}.1.sai
- #       bwa_0.7.12 aln -t 38 ${hg38} ${k}.2_val_2.fq > ${k}.2.sai
-  #      bwa_0.7.12 sampe -r "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1.sai ${k}.2.sai ${k}.1_val_1.fq ${k}.2_val_2.fq > ${k}.sam
-#	rm ${k}.1.sai
-#	rm ${k}.2.sai
+        bwa_0.7.12 aln -t 38 ${hg38} ${k}.1_val_1.fq > ${k}.1.sai
+        bwa_0.7.12 aln -t 38 ${hg38} ${k}.2_val_2.fq > ${k}.2.sai
+        bwa_0.7.12 sampe -r "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1.sai ${k}.2.sai ${k}.1_val_1.fq ${k}.2_val_2.fq > ${k}.sam
+	rm ${k}.1.sai
+	rm ${k}.2.sai
 #Create bam file and clean + sort + index
-#	samtools_1.2 view -bS ${k}.sam > ${k}.bam
-#	echo "The alignment of ${k} was completed"
+	samtools_1.2 view -bS ${k}.sam > ${k}.bam
+	echo "The alignment of ${k} was completed"
 #	java -jar ${PICARD} CleanSam I=${k}.bam O=${k}_clean.bam
- #       samtools_1.2 sort ${k}.bam ${k}.sorted
-#	samtools_1.2 index ${k}.sorted.bam
-#	rm ${k}.sam
-#	rm ${k}.bam
+        samtools_1.2 sort ${k}.bam ${k}.sorted
+	samtools_1.2 index ${k}.sorted.bam
+	rm ${k}.sam
+	rm ${k}.bam
 #Realigned and Indels
-#        java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ${k}.sorted.bam -o ${k}.bam.list -drf DuplicateRead
- #       java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ${k}.sorted.bam -targetIntervals ${k}.bam.list -o ${k}.sorted.realigned.bam
-  #      rm ${k}.bam.list
+        java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ${k}.sorted.bam -o ${k}.bam.list -drf DuplicateRead
+        java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ${k}.sorted.bam -targetIntervals ${k}.bam.list -o ${k}.sorted.realigned.bam
+        rm ${k}.bam.list
 #Recalibrator and quality control
-   #     java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ${k}.sorted.realigned.bam -l info -knownSites ${All} -o ${k}.sorted.realigned.table -drf DuplicateRead
-    #    java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ${k}.sorted.realigned.bam -l INFO -BQSR ${k}.sorted.realigned.table -o ${k}.sorted.realigned.recal.bam
+        java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ${k}.sorted.realigned.bam -l info -knownSites ${All} -o ${k}.sorted.realigned.table -drf DuplicateRead
+        java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ${k}.sorted.realigned.bam -l INFO -BQSR ${k}.sorted.realigned.table -o ${k}.sorted.realigned.recal.bam
 	java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ${k}.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -A AlleleBalance -dcov 10000 --max_alternate_alleles 40 -o ${k}.vcf -drf DuplicateRead
 	perl ${TABLE_ANNOVAR} ${k}.vcf ${humandb} -buildver hg38 -out ${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
