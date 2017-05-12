@@ -36,11 +36,7 @@ for k in `cat samples.txt`; do
         gunzip ${k}.1_val_1.fq.gz
         gunzip ${k}.2_val_2.fq.gz
 #Alignment 1000Genomes(Hg38)
-        bwa_0.7.12 aln -t 38 ${hg38} ${k}.1_val_1.fq > ${k}.1.sai
-        bwa_0.7.12 aln -t 38 ${hg38} ${k}.2_val_2.fq > ${k}.2.sai
-        bwa_0.7.12 sampe -r "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1.sai ${k}.2.sai ${k}.1_val_1.fq ${k}.2_val_2.fq > ${k}.sam
-	rm ${k}.1.sai
-	rm ${k}.2.sai
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}.1_val_1.fq.gz ${k}.2_val_2.fq.gz > ${k}.sam
 #Create bam file and clean + sort + index
 	samtools_1.2 view -bS ${k}.sam > ${k}.bam
 	echo "The alignment of ${k} was completed"
