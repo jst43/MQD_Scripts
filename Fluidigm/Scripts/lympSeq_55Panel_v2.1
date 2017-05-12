@@ -77,7 +77,7 @@ for k in `cat samples.txt`; do
 #Trimmed
         cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R1_001.fastq.gz | gzip -c > ./tempfiles/${k}.1.fq.gz
         cutadapt -b TGTAGAACCATGTCGTCAGTGT -b AGACCAAGTCTCTGCTACCGT ${k}_L001_R2_001.fastq.gz | gzip -c > ./tempfiles/${k}.2.fq.gz
-	perl ${TRIM_GALORE} --paired --length 50 --output-dir ./trimmed_fastq ./tempfiles/${k}.1.fq.gz ./tempfiles/${k}.2.fq.gz
+	perl ${TRIM_GALORE} --paired --length 50 --output_dir ./trimmed_fastq ./tempfiles/${k}.1.fq.gz ./tempfiles/${k}.2.fq.gz
 #Check sequencing quality after trimming
 #        fastqc ${k}.1_val_1.fq.gz
 #        fastqc ${k}.2_val_2.fq.gz
