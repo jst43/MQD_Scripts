@@ -27,7 +27,6 @@ while getopts ":f:g:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
-			echo "Filepath is $OPTARG" >&2
 			;;
 		g)
 			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ]; then
@@ -40,7 +39,7 @@ while getopts ":f:g:h" opt; do
 			fi
 			;;
 		h)
-			echo "Usage: $0 [-f] FILEPATH" >&2
+			echo "Usage: $0 [-f FILEPATH] [-g GENE_PANEL] " >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "	-g		gene panel, provides links to the amplicon and"
@@ -63,6 +62,8 @@ done
 if [ -z $filepath ] || [ ! -d $filepath ]; then
 	echo "This script requires a valid filepath to the fastq file directory"
 	exit 1
+else
+	echo "Filepath is $filepath"
 fi
 
 cd $filepath
