@@ -27,7 +27,7 @@ while getopts ":p:s:f:h" opt; do
 			echo "Filepath is $OPTARG" >&2
 			;;
 		h)
-			echo "Usage: $0 [-f] FILEPATH" >&2
+			echo "Usage: $0 [ -p PIPELINE ] [ -s PREFIX ] [ -f FILEPATH ]" >&2
 			echo
 			echo "	-p		pipeline argument; choice of SNV or Pindel"
 			echo "	-s		sample prefix, eg. MP, DLBCL"
