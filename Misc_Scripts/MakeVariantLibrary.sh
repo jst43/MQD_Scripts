@@ -55,3 +55,9 @@ done
 
 cat ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt
 sed -i 's|'"${FileString}"'||' ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt
+
+if [ -z $Sample_Prefix ];
+	then
+		mv ${Sample_Prefix}_libraryHALOnames_${Pipeline}.txt All_libraryHALOnames_${Pipeline}.txt
+		mv ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt All_LibraryHALO_${Pipeline}_hg38_multianno.txt
+fi
