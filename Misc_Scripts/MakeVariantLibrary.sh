@@ -10,6 +10,13 @@ while getopts ":p:s:f:h" opt; do
 		p)
 			Pipeline=$OPTARG >&2
 			echo "Pipeline is $OPTARG" >&2
+			if [ ${Pipeline} == "SNV" ];
+			then
+			        FileString="_SNVs.myanno.hg38_multianno.txt"
+			elif [ ${Pipeline} == "Pindel" ];
+			then
+			        FileString="_DSI.myanno.hg38_multianno.txt"
+			fi
 			;;
 		s)
 			Sample_Prefix=$OPTARG >&2
@@ -38,14 +45,6 @@ while getopts ":p:s:f:h" opt; do
 			;;
 	esac
 done
-
-if [ ${Pipeline} == "SNV" ];
-then
-	FileString="_SNVs.myanno.hg38_multianno.txt"
-elif [ ${Pipeline} == "Pindel" ];
-then
-	FileString="_DSI.myanno.hg38_multianno.txt"
-fi
 
 cd $Filepath
 
