@@ -48,8 +48,6 @@ ls ../sorted_bam/*.sorted.bam > samplesPindel.txt
 sed -i 's|../sorted_bam/||' samplesPindel.txt
 sed -i 's|.sorted.bam||' samplesPindel.txt
 
-#cd pindeltemp
-
 #Create files: pindelinput.txt
 for k in `cat samplesPindel.txt`; do
         ls ../sorted_bam/${k}.sorted.bam > ${k}_pindelinput.txt
