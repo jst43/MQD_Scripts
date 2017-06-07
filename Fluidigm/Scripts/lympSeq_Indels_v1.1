@@ -64,16 +64,23 @@ done
 
 echo "vcf files for deletions and insertions were made."
 #create list of name sample no-duplicates
-ls *_D.vcf > names.txt
+ls *-Dup1_D.vcf > names.txt
 sed -i 's|_D.vcf||' names.txt
+sed -i 's|-Dup1||' names.txt
 
 for i in `cat names.txt`; do
-#Filtering
-        bgzip -c ${i}_D.vcf > ${i}_D.vcf.gz
-        tabix -p vcf ${i}_D.vcf.gz
+#Merging both duplicates and filtering vcf
+        bgzip -c ${i}-Dup1_D.vcf > ${i}-Dup1_D.vcf.gz
+        tabix -p vcf ${i}-Dup1_D.vcf.gz
+        bgzip -c ${i}-Dup2_D.vcf > ${i}-Dup2_D.vcf.gz
+        tabix -p vcf ${i}-Dup2_D.vcf.gz
+        vcf-merge ${i}-Dup1_D.vcf.gz ${i}-Dup2_D.vcf.gz > ${i}_D.vcf
         vcftools_0.1.13 --vcf ${i}_D.vcf --max-missing 1 --recode --out ${i}_D_F1
-        bgzip -c ${i}_SI.vcf > ${i}_SI.vcf.gz
-        tabix -p vcf ${i}_SI.vcf.gz
+        bgzip -c ${i}-Dup1_SI.vcf > ${i}-Dup1_SI.vcf.gz
+        tabix -p vcf ${i}-Dup1_SI.vcf.gz
+        bgzip -c ${i}-Dup2_SI.vcf > ${i}-Dup2_SI.vcf.gz
+        tabix -p vcf ${i}-Dup2_SI.vcf.gz
+        vcf-merge ${i}-Dup1_SI.vcf.gz ${i}-Dup2_SI.vcf.gz > ${i}_SI.vcf
         vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
         mv ${i}_D_F1.recode.vcf ${i}_D_F1.vcf
         mv ${i}_SI_F1.recode.vcf ${i}_SI_F1.vcf
