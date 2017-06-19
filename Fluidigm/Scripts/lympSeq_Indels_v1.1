@@ -44,14 +44,14 @@ mkdir pindel_anno
 cd pindeltemp
 
 #Create list of name samples
-ls ../sorted_bam/*.sorted.bam > samplesPindel.txt
-sed -i 's|../sorted_bam/||' samplesPindel.txt
-sed -i 's|.sorted.bam||' samplesPindel.txt
+ls ../recal_bam/*.recal.bam > samplesPindel.txt
+sed -i 's|../recal_bam/||' samplesPindel.txt
+sed -i 's|.sorted.realigned.recal.bam||' samplesPindel.txt
 
 #Create files: pindelinput.txt
 for k in `cat samplesPindel.txt`; do
-        ls ../sorted_bam/${k}.sorted.bam > ${k}_pindelinput.txt
-	sed -i 's|\(.\+\)\.sorted.bam|\1\.sorted.bam\t350\t\1|' ${k}_pindelinput.txt
+        ls ../recal_bam/${k}.sorted.realigned.recal.bam > ${k}_pindelinput.txt
+	sed -i 's|\(.\+\)\.sorted.realigned.recal.bam|\1\.sorted.realigned.recal.bam\t350\t\1|' ${k}_pindelinput.txt
 done
 
 #Run Pindel
