@@ -41,8 +41,8 @@ mkdir files_md5
 mv *.md5 files_md5
 
 for i in `cat files_md5`; do
-	large_md5="$(md5sum ${i}.*)"
-	small_md5="$(cat files_md5/${i}.md5)"
+	large_md5=`md5sum ${i}.*`
+	small_md5=`cat files_md5/${i}.md5`
 	if [ "$large_md5" != "$small_md5" ]; then
 		echo "$i failed"
 	fi
