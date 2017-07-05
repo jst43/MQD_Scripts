@@ -40,7 +40,7 @@ sed -i 's|.md5||' md5_list.txt
 mkdir files_md5
 mv *.md5 files_md5
 
-for i in `cat files_md5`; do
+for i in `cat md5_list.txt`; do
 	large_md5=`md5sum ${i}.*`
 	small_md5=`cat files_md5/${i}.md5`
 	if [ "$large_md5" != "$small_md5" ]; then
