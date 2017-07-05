@@ -48,7 +48,7 @@ for i in `cat md5_list.txt`; do
 	fi
 done
 
-mv files_md5/* ./*
-rmdir files_md5
+mv files_md5/* ./
+rmdir files_md5/
 
 rm md5_list.txt 
