@@ -17,7 +17,10 @@ for k in `cat samples.txt`; do
 	/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java -Xmx250g -jar /media/eguz/darwin/Resources/Software/LocatIt_v3.5.1.46.jar -X /media/eguz/darwin/Analysis/Ongoing/HALOPLEX/DATA -U -IS -OB -b amplicons38.bed -o ${k}_RMD ${k}.sam ${k}_L001_I2_001.fastq.gz
 	#Convert bam without duplicates in fastq file
 	java -Xmx250g -jar ${PICARD} SamToFastq I=${k}_RMD.bam F=${k}_R1.fastq F2=${k}_R2.fastq
+	#Realign with bwa mem
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}_R1.fastq ${k}_R2.fastq > ${k}_RMD.sam
 	#Create bam file, sort + index
+	samtools_1.2 view -bS ${k}_RMD.sam > ${k}.bam
 	samtools_1.2 sort ${k}_RMD.bam ${k}.sorted
 	samtools_1.2 index ${k}.sorted.bam
 	#Realigned and Indels
