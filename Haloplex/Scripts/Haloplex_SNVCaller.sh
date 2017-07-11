@@ -7,8 +7,8 @@ All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
-dedup_bed="/home/joe/MQD_Scripts/HaloPlex/Dependent_Files/dedup_amplicons38.bed"
-coverage_bed="/home/joe/MQD_Scripts/HaloPlex/Dependent_Files/coverage_amplicons38.bed"
+dedup_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/dedup_amplicons38.bed"
+coverage_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/coverage_amplicons38.bed"
 
 #COMMANDLINE VARIABLES
 while getopts "fh" opt; do
