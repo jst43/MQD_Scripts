@@ -1,16 +1,51 @@
 #!/bin/bash
+
+#CONSTANTS
+SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46.jar"
+java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
+
+#COMMANDLINE VARIABLES
+while getopts "fh" opt; do
+	case $opt in
+		f)
+			filepath=$OPTARG >&2
+			;;
+		h)
+			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
+			echo
+			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "			if no filepath is given, $0 will use the current directory"
+			echo "	-h		display this help message"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [ -z $filepath ]; then
+	filepath=`pwd`
+fi
+
+if [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
+
+#SCRIPT
 echo "######################################################"
-echo "#                   lympHaloPlex_v0.1                #"
-echo "#    Writen by Eguzkine Ochoa (eguzki8a@gmail.com)   #"
+echo "#                   Haloplex_Trim                    #"
+echo "#       Writen by Joe Thompson (jst43@cam.ac.uk)     #"
 echo "#                                                    #"
 echo "#                   November 3rd 2016                #"
 echo "# This Bash script uses the following software under #"
-echo "#    GNU Public license v2: vim, fastqc, cutadapt,   #"
-echo "#      bwa, samtools, GATK, vcftools and Annovar.    #"
+echo "#    GNU Public license v2: fastqc                   #"
 echo "#                                                    #"
 echo "######################################################"
-SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46.jar"
-java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
+
+cd $filepath
 
 ##BEFORE TO START: In the folder should be fastq.gz files.
 ##Remove S code from all samples
