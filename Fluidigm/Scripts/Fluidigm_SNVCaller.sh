@@ -16,7 +16,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-while getopts ":f:g:h" opt; do
+while getopts ":fg:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -32,9 +32,10 @@ while getopts ":f:g:h" opt; do
 			fi
 			;;
 		h)
-			echo "Usage: $0 [-f FILEPATH] [-g GENE_PANEL] " >&2
+			echo "Usage: $0 [-g GENE_PANEL] [-f FILEPATH (optional)] " >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-g		gene panel, provides links to the amplicon and"
 			echo "			degnerate primers files. Current options are"
 			echo "			8, 10, and 22"
@@ -52,7 +53,11 @@ while getopts ":f:g:h" opt; do
 	esac
 done
 
-if [ -z $filepath ] || [ ! -d $filepath ]; then
+if [ -z $filepath ]; then
+	filepath=`pwd`
+fi
+
+if [ ! -d $filepath ]; then
 	echo "This script requires a valid filepath to the fastq file directory"
 	exit 1
 fi
