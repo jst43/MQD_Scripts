@@ -1,19 +1,58 @@
 #!/bin/bash
-echo "######################################################"
-echo "#                lympSeq_Indels_v1.0                 #"
-echo "#    Writen by Eguzkine Ochoa (eguzki8a@gmail.com)   #"
-echo "#                                                    #"
-echo "#                  March 2nd 2016                    #"
-echo "# This Bash script uses the following software under #"
-echo "#         GNU Public license v2: vim, Pindel,        #"
-echo "#            vcftools, Picard and Annovar.           #"
-echo "#                                                    #"
-echo "######################################################"
+
+#CONSTANTS
 hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
 hg38Dict="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.dict"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
+
+#COMMANDLINE VARIABLES
+while getopts "fh" opt; do
+	case $opt in
+		f)
+			filepath=$OPTARG >&2
+			;;
+		h)
+			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
+			echo
+			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "			if no filepath is given, $0 will use the current directory"
+			echo "	-h		display this help message"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [ -z $filepath ]; then
+	filepath=`pwd`
+fi
+
+if [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
+
+#SCRIPT
+echo "######################################################"
+echo "#                Haloplex_IndelsCaller               #"
+echo "#      Writen by Joe Thompson (jst43@cam.ac.uk)      #"
+echo "#                                                    #"
+echo "#                  July 11th 2017                    #"
+echo "# This Bash script uses the following software under #"
+echo "#         GNU Public license v2: Pindel, vcftools    #"
+echo "#                Picard and Annovar.                 #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
+echo "Filepath is $filepath"
+echo ""
+
+cd $filepath
 
 #BEFORE TO START: In the folder should be included sorted.bam files and header.txt
 #Create list of name samples
