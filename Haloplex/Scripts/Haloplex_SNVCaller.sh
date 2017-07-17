@@ -53,8 +53,6 @@ echo "#                                                    #"
 echo "######################################################"
 echo ""
 echo "Filepath is $filepath"
-echo ""
-echo "Gene Panel is $genepanel"
 
 cd $filepath
 
