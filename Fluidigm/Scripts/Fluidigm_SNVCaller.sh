@@ -3,7 +3,6 @@
 #CONSTANTS
 TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
 hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
-PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
 GATK="/media/eguz/darwin/Resources/Software/GenomeAnalysisTK.jar"
 All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
