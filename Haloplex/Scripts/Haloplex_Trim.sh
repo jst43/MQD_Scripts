@@ -46,6 +46,7 @@ echo "#                                                    #"
 echo "######################################################"
 echo ""
 echo "Filepath is $filepath"
+echo ""
 
 cd $filepath
 
