@@ -7,6 +7,8 @@ All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
 TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
 humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
 PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
+java="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
+LocatIt="/media/eguz/darwin/Resources/Software/LocatIt_v3.5.1.46.jar"
 dedup_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/dedup_amplicons38.bed"
 coverage_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/coverage_amplicons38.bed"
 
@@ -56,35 +58,41 @@ echo "Filepath is $filepath"
 
 cd $filepath
 
+#Make directories
+mkdir tempfiles
+mkdir recal_bam
+mkdir coverage
+mkdir vcf_anno
+
 #Change names outputs trimming software!!!!
 for k in `cat samples.txt`; do
 	#Decompress
-	gunzip ${k}_L001_R1_001.trimmed.fastq.gz
-	gunzip ${k}_L001_R2_001.trimmed.fastq.gz
+	gunzip ./trimmed_fastq/${k}_L001_R1_001.trimmed.fastq.gz
+	gunzip ./trimmed_fastq/${k}_L001_R2_001.trimmed.fastq.gz
 	#Alignment 1000Genomes(Hg38)
-	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}_L001_R1_001.trimmed.fastq ${k}_L001_R2_001.trimmed.fastq > ${k}.sam
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./trimmed_fastq/${k}_L001_R1_001.trimmed.fastq ./trimmed_fastq/${k}_L001_R2_001.trimmed.fastq > ./tempfiles/${k}.sam
 	#Remove Duplicates with LocatIt
-	/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java -Xmx250g -jar /media/eguz/darwin/Resources/Software/LocatIt_v3.5.1.46.jar -X $filepath -U -IS -OB -b $dedup_bed -o ${k}_RMD ${k}.sam ${k}_L001_I2_001.fastq.gz
+	$java -Xmx250g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ./tempfiles/${k}_RMD ./tempfiles${k}.sam ${k}_L001_I2_001.fastq.gz
 	#Convert bam without duplicates in fastq file
-	java -Xmx250g -jar ${PICARD} SamToFastq I=${k}_RMD.bam F=${k}_R1.fastq F2=${k}_R2.fastq
+	java -Xmx250g -jar ${PICARD} SamToFastq I=./tempfiles/${k}_RMD.bam F=./tempfiles/${k}_R1.fastq F2=./tempfiles/${k}_R2.fastq
 	#Realign with bwa mem
-	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ${k}_R1.fastq ${k}_R2.fastq > ${k}_RMD.sam
+	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./tempfiles/${k}_R1.fastq ./tempfiles/${k}_R2.fastq > ./tempfiles/${k}_RMD.sam
 	#Create bam file, sort + index
-	samtools_1.2 view -bS ${k}_RMD.sam > ${k}.bam
-	samtools_1.2 sort ${k}_RMD.bam ${k}.sorted
-	samtools_1.2 index ${k}.sorted.bam
+	samtools_1.2 view -bS ./tempfiles/${k}_RMD.sam > ./tempfiles/${k}.bam
+	samtools_1.2 sort ./tempfiles/${k}_RMD.bam ./tempfiles/${k}.sorted
+	samtools_1.2 index ./tempfiles/${k}.sorted.bam
 	#Realigned and Indels
-	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ${k}.sorted.rg.bam -o ${k}.bam.list
-	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ${k}.sorted.rg.bam -targetIntervals ${k}.bam.list -o ${k}.sorted.realigned.bam
+	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -o ./tempfiles/${k}.bam.list
+	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./tempfiles/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 	#Recalibrator and quality control
-	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ${k}.sorted.realigned.bam -l info -knownSites ${All} -o ${k}.sorted.realigned.table
-	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ${k}.sorted.realigned.bam -l INFO -BQSR ${k}.sorted.realigned.table -o ${k}.sorted.realigned.recal.bam
-	java -Xmx250g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ${k}.coverage -I ${k}.sorted.realigned.recal.bam -L $coverage_bed
+	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table
+	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
+	java -Xmx250g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $coverage_bed
 	#Calling variants
-	java -Xmx250g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ${k}.vcf
+	java -Xmx250g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
 	#Filtering	
-	vcftools_0.1.13 --vcf ${k}.vcf --minQ 30 --recode --out ${k}_F1
-	vcftools_0.1.13 --vcf ${k}_F1.recode.vcf --min-meanDP 50 --recode --out ${k}_F2
+	vcftools_0.1.13 --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
+	vcftools_0.1.13 --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 50 --recode --out ./tempfiles/${k}_F2
 	#Annotation
-	perl ${TABLE_ANNOVAR} ${k}.vcf ${humandb} -buildver hg38 -out ${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_F2.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
