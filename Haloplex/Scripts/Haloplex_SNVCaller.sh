@@ -80,7 +80,7 @@ for k in `cat samples.txt`; do
 	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./tempfiles/${k}_R1.fastq ./tempfiles/${k}_R2.fastq > ./tempfiles/${k}_RMD.sam
 	#Create bam file, sort + index
 	samtools_1.2 view -bS ./tempfiles/${k}_RMD.sam > ./tempfiles/${k}.bam
-	samtools_1.2 sort ./tempfiles/${k}_RMD.bam ./tempfiles/${k}.sorted
+	samtools_1.2 sort ./tempfiles/${k}.bam ./tempfiles/${k}.sorted
 	samtools_1.2 index ./tempfiles/${k}.sorted.bam
 	#Realigned and Indels
 	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -o ./tempfiles/${k}.bam.list
