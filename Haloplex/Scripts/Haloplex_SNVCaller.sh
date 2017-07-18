@@ -72,7 +72,7 @@ for k in `cat samples.txt`; do
 	#Alignment 1000Genomes(Hg38)
 	bwa_0.7.12 mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./trimmed_fastq/${k}_L001_R1_001.trimmed.fastq ./trimmed_fastq/${k}_L001_R2_001.trimmed.fastq > ./tempfiles/${k}.sam
 	#Remove Duplicates with LocatIt
-	$java -Xmx250g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ./tempfiles/${k}_RMD ./tempfiles${k}.sam ${k}_L001_I2_001.fastq.gz
+	$java -Xmx250g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ./tempfiles/${k}_RMD ./tempfiles/${k}.sam ${k}_L001_I2_001.fastq.gz
 	#Convert bam without duplicates in fastq file
 	java -Xmx250g -jar ${PICARD} SamToFastq I=./tempfiles/${k}_RMD.bam F=./tempfiles/${k}_R1.fastq F2=./tempfiles/${k}_R2.fastq
 	#Realign with bwa mem
