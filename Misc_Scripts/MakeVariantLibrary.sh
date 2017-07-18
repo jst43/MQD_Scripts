@@ -56,18 +56,20 @@ if [ ! -d $filepath ]; then
 	exit 1
 fi
 
+echo "Filepath is $filepath"
+
 cd $Filepath
 
-ls ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_libraryHALOnames_${Pipeline}.txt
-for i in `cat ${Sample_Prefix}_libraryHALOnames_${Pipeline}.txt`; do
-	sed -i 's|^|'"${i}"'\t|' ${i}
+ls ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_librarynames_${Pipeline}.txt
+for i in `cat ${Sample_Prefix}_librarynames_${Pipeline}.txt`; do
+	sed -i 's|^|'"${i}"'\t|' $i
 done
 
-cat ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt
-sed -i 's|'"${FileString}"'||' ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt
+cat ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt
+sed -i 's|'"${FileString}"'||' ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt
 
 if [ -z $Sample_Prefix ];
 	then
-		mv ${Sample_Prefix}_libraryHALOnames_${Pipeline}.txt All_libraryHALOnames_${Pipeline}.txt
-		mv ${Sample_Prefix}_LibraryHALO_${Pipeline}_hg38_multianno.txt All_LibraryHALO_${Pipeline}_hg38_multianno.txt
+		mv ${Sample_Prefix}_librarynames_${Pipeline}.txt All_librarynames_${Pipeline}.txt
+		mv ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt All_Library_${Pipeline}_hg38_multianno.txt
 fi
