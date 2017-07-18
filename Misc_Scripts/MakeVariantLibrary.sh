@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#COMMANDLINE VARIABLES
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
     exit 1
@@ -8,23 +9,20 @@ fi
 while getopts ":p:s:fh" opt; do
 	case $opt in
 		p)
-			Pipeline=$OPTARG >&2
-			echo "Pipeline is $OPTARG" >&2
-			if [ ${Pipeline} == "SNV" ];
+			pipeline=$OPTARG >&2
+			if [ ${pipeline} == "SNV" ];
 			then
-			        FileString="_SNVs.myanno.hg38_multianno.txt"
-			elif [ ${Pipeline} == "Pindel" ];
+			        filestring="_SNVs.myanno.hg38_multianno.txt"
+			elif [ ${pipeline} == "Pindel" ];
 			then
-			        FileString="_DSI.myanno.hg38_multianno.txt"
+			        filestring="_DSI.myanno.hg38_multianno.txt"
 			fi
 			;;
 		s)
-			Sample_Prefix=$OPTARG >&2
-			echo "Sample Prefix is $OPTARG" >&2
+			sample_prefix=$OPTARG >&2
 			;;
 		f)
-			Filepath=$OPTARG >&2
-			echo "Filepath is $OPTARG" >&2
+			filepath=$OPTARG >&2
 			;;
 		h)
 			echo "Usage: $0 [ -p PIPELINE ] [ -s PREFIX ] [ -f FILEPATH ]" >&2
@@ -56,20 +54,25 @@ if [ ! -d $filepath ]; then
 	exit 1
 fi
 
+#SCRIPT
+echo "Pipeline is $pipeline"
+echo ""
+echo "Sample Prefix is $sample_prefix"
+echo ""
 echo "Filepath is $filepath"
 
-cd $Filepath
+cd $filepath
 
-ls ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_librarynames_${Pipeline}.txt
-for i in `cat ${Sample_Prefix}_librarynames_${Pipeline}.txt`; do
+ls ${sample_prefix}*${filestring} > ${sample_prefix}_librarynames_${pipeline}.txt
+for i in `cat ${sample_prefix}_librarynames_${pipeline}.txt`; do
 	sed -i 's|^|'"${i}"'\t|' $i
 done
 
-cat ${Sample_Prefix}*${FileString} > ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt
-sed -i 's|'"${FileString}"'||' ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt
+cat ${sample_prefix}*${filestring} > ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt
+sed -i 's|'"${filestring}"'||' ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt
 
-if [ -z $Sample_Prefix ];
+if [ -z $sample_prefix ];
 	then
-		mv ${Sample_Prefix}_librarynames_${Pipeline}.txt All_librarynames_${Pipeline}.txt
-		mv ${Sample_Prefix}_Library_${Pipeline}_hg38_multianno.txt All_Library_${Pipeline}_hg38_multianno.txt
+		mv ${sample_prefix}_librarynames_${pipeline}.txt All_librarynames_${pipeline}.txt
+		mv ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt All_Library_${pipeline}_hg38_multianno.txt
 fi
