@@ -56,13 +56,14 @@ cd $filepath
 
 #BEFORE TO START: In the folder should be included sorted.bam files and header.txt
 #Create list of name samples
-ls *.sorted.bam > samplesPindel.txt
-vim -c "%s/.sorted.bam//g|wq" samplesPindel.txt
+ls ./recal_bam/*.sorted.realigned.recal.bam > samplesPindel.txt
+sed -i 's|.sorted.realigned.recal.bam||' samplesPindel.txt
 #Create files: pindelinput.txt
 for k in `cat samplesPindel.txt`; do
-	ls ${k}.sorted.bam > ${k}_pindelinput.txt
-	vim -c "%s/\(\S\+\)\.sorted.bam/\1\.sorted.bam\t350\t\1/e|wq" ${k}_pindelinput.txt
+	ls ./recal_bam/${k}.sorted.realigned.recal.bam > ${k}_pindelinput.txt
+	sed -i 's|\(.\+\)\.sorted.realigned.recal.bam|\1\.sorted.realigned.recal.bam\t350\t\1|' ${k}_pindelinput.txt
 done
+
 #Run Pindel
 for i in `cat samplesPindel.txt`; do
 	pindel -f ${hg38} -i ${i}_pindelinput.txt -c ALL -o ${i}
@@ -74,7 +75,7 @@ for i in `cat samplesPindel.txt`; do
         tabix -p vcf ${i}_D.vcf.gz
         bgzip -c ${i}_SI.vcf > ${i}_SI.vcf.gz
         tabix -p vcf ${i}_SI.vcf.gz
-#        vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
+        vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
 #Merging Deletion and Insertion
 	vcf-concat ${i}_D.vcf.gz ${i}_SI.vcf.gz > ${i}_D+SI.vcf
 	java -jar ${PICARD} SortVcf I=${i}_D+SI.vcf O=${i}_D+SI.sorted.vcf SD=${hg38Dict}
@@ -83,12 +84,5 @@ for i in `cat samplesPindel.txt`; do
 #Annotation hg38
 	perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ${i}_D+SI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
-echo "lympSeq_Indels analysis was completed."
 
-#Building result files
-ls *_D+SI.myanno.hg38_multianno.txt > librarynames_D+SI.txt
-for i in `cat librarynames_D+SI.txt`; do
-	sed -i "s/^/${i}\t/" ${i}
-done
-cat *_D+SI.myanno.hg38_multianno.txt > Library_D+SI_hg38_multianno.txt
-vim -c "%s/_D+SI.myanno.hg38_multianno.txt//g|wq" Library_D+SI_hg38_multianno.txt
+echo "lympSeq_Indels analysis was completed."
