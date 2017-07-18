@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-while getopts ":p:s:f:h" opt; do
+while getopts ":p:s:fh" opt; do
 	case $opt in
 		p)
 			Pipeline=$OPTARG >&2
@@ -32,6 +32,7 @@ while getopts ":p:s:f:h" opt; do
 			echo "	-p		pipeline argument; choice of SNV or Pindel"
 			echo "	-s		sample prefix, eg. MP, DLBCL"
 			echo "	-f		filepath to directory containing fastq.gz files"
+			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -45,6 +46,15 @@ while getopts ":p:s:f:h" opt; do
 			;;
 	esac
 done
+
+if [ -z $filepath ]; then
+	filepath=`pwd`
+fi
+
+if [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
 
 cd $Filepath
 
