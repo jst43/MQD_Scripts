@@ -44,8 +44,12 @@ echo "# This Bash script uses the following software under #"
 echo "#    GNU Public license v2: fastqc                   #"
 echo "#                                                    #"
 echo "######################################################"
+echo ""
+echo "Filepath is $filepath"
 
 cd $filepath
+
+mkdir trimmed_fastq
 
 ##BEFORE TO START: In the folder should be fastq.gz files.
 ##Remove S code from all samples
@@ -84,6 +88,5 @@ done
 
 #Rename SureCallTRIMMER output files
 for k in `cat pretrimNames.txt`; do
-	mv ${k}.*.fastq.gz ${k}.trimmed.fastq.gz;
+	mv ${k}.*.fastq.gz ./trimmed_fastq/${k}.trimmed.fastq.gz;
 done
-
