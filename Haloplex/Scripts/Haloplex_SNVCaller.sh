@@ -88,12 +88,3 @@ for k in `cat samples.txt`; do
 	#Annotation
 	perl ${TABLE_ANNOVAR} ${k}.vcf ${humandb} -buildver hg38 -out ${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
-
-#Building result files
-ls *_SNVs.myanno.hg38_multianno.txt > libraryHALOnames_SNVs.txt
-for i in `cat libraryHALOnames_SNVs.txt`; do
-	sed -i 's|^|${i}\t|' ${i}
-done
-
-cat *_SNVs.myanno.hg38_multianno.txt > LibraryHALO_SNVs_hg38_multianno.txt
-sed -i 's|_SNVs.myanno.hg38_multianno.txt||' LibraryHALO_SNVs_hg38_multianno.txt
