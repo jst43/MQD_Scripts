@@ -5,16 +5,20 @@ SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46
 java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fh" opt; do
+while getopts "fqh" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
 			;;
+		q)
+			qc=TRUE >&2
+			;;
 		h)
-			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
+			echo "Usage: $0 [-f FILEPATH (optional)] [ -q (optional) ]" >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
+			echo "	-q		performs quality check with fastqc"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -62,8 +66,10 @@ sed -i 's|.fastq.gz||' pretrimNames.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
-	fastqc ${k}_L001_R1_001.fastq.gz
-	fastqc ${k}_L001_R2_001.fastq.gz
+	if [ ! -z $qc ]; then
+		fastqc ${k}_L001_R1_001.fastq.gz
+		fastqc ${k}_L001_R2_001.fastq.gz
+	fi
 #Trimmed: Amplicon sizes should be 190-640 bp.SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
 	${java8} -Xmx250g -jar ${SureCallTRIMMER} -fq1 ${filepath}/${k}_L001_R1_001.fastq.gz -fq2 ${filepath}/${k}_L001_R2_001.fastq.gz -hs
 done
@@ -72,3 +78,5 @@ done
 for k in `cat pretrimNames.txt`; do
 	mv ${k}.*.fastq.gz ./trimmed_fastq/${k}.trimmed.fastq.gz;
 done
+
+rm pretrimNames.txt
