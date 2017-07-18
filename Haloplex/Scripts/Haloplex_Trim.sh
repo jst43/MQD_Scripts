@@ -65,7 +65,7 @@ for k in `cat samples.txt`; do
 	fastqc ${k}_L001_R1_001.fastq.gz
 	fastqc ${k}_L001_R2_001.fastq.gz
 #Trimmed: Amplicon sizes should be 190-640 bp.SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
-	${java8} -Xmx250g -jar ${SureCallTRIMMER} -fq1 ${filepath}${k}_L001_R1_001.fastq.gz -fq2 ${filepath}${k}_L001_R2_001.fastq.gz -hs
+	${java8} -Xmx250g -jar ${SureCallTRIMMER} -fq1 ${filepath}/${k}_L001_R1_001.fastq.gz -fq2 ${filepath}/${k}_L001_R2_001.fastq.gz -hs
 done
 
 #Rename SureCallTRIMMER output files
