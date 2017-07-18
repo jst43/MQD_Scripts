@@ -51,25 +51,6 @@ cd $filepath
 
 mkdir trimmed_fastq
 
-##BEFORE TO START: In the folder should be fastq.gz files.
-##Remove S code from all samples
-ls *_L001_R1_001.fastq.gz > Scode.txt
-sed -i 's|_L001_R1_001.fastq.gz||' Scode.txt
-sed -i 's|_S\d\+||' Scode.txt
-for k in `cat Scode.txt`; do
-	mv ${k}_S*_L001_R1_001.fastq.gz ${k}_L001_R1_001.fastq.gz
-	mv ${k}_S*_L001_R2_001.fastq.gz ${k}_L001_R2_001.fastq.gz
-done
-
-##Remove S code from Index files
-ls *_L001_I1_001.fastq.gz > Scode_index.txt
-sed -i 's|_L001_I1_001.fastq.gz||' Scode_index.txt
-sed -i 's|_S\d\+||' Scode_index.txt
-for k in `cat Scode_index.txt`; do
-	mv ${k}_S*_L001_I1_001.fastq.gz ${k}_L001_I1_001.fastq.gz
-	mv ${k}_S*_L001_I2_001.fastq.gz ${k}_L001_I2_001.fastq.gz
-done
-
 #Create list of sample names including Dup1-Dup2
 ls *_L001_R1_001.fastq.gz > samples.txt
 sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
