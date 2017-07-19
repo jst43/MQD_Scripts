@@ -5,7 +5,7 @@ SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46
 java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fqbh" opt; do
+while getopts "fqb:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -15,8 +15,8 @@ while getopts "fqbh" opt; do
 			;;
 		b)
 			batchfile=$OPTARG >&2
-			sed 's|.fastq.gz||' $batchfile > pretrimNames.txt >&2
-			sed 's|_L001_R[1-2]_001||' pretrimNames.txt | uniq > samples.txt >&2
+			sed 's|.fastq.gz||' $batchfile > pretrimNames.txt
+			sed 's|_L00[0-9]_R[1-2]_001||' pretrimNames.txt | uniq > samples.txt
 			;;
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] [ -q (optional) ]" >&2
@@ -62,7 +62,7 @@ cd $filepath
 
 mkdir trimmed_fastq
 
-if [ ! -e samples.txt ];then
+if [ -z $batchfile ];then
 	#Create list of sample names including Dup1-Dup2
 	ls *_L001_R1_001.fastq.gz > samples.txt
 	sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
