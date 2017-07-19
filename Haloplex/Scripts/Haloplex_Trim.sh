@@ -5,7 +5,7 @@ SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46
 java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fqsh" opt; do
+while getopts "fqbh" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
