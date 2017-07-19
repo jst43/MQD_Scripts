@@ -5,7 +5,7 @@ SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46
 java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fqh" opt; do
+while getopts "fqsh" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -13,12 +13,18 @@ while getopts "fqh" opt; do
 		q)
 			qc=TRUE >&2
 			;;
+		b)
+			batchfile=$OPTARG >&2
+			sed 's|.fastq.gz||' $batchfile > pretrimNames.txt >&2
+			sed 's|_L001_R[1-2]_001||' pretrimNames.txt | uniq > samples.txt >&2
+			;;
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] [ -q (optional) ]" >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-q		performs quality check with fastqc"
+			echo "	-b		reads in batch sample file to run on"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -56,13 +62,14 @@ cd $filepath
 
 mkdir trimmed_fastq
 
-#Create list of sample names including Dup1-Dup2
-ls *_L001_R1_001.fastq.gz > samples.txt
-sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
-
-#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
-ls *_R*.fastq.gz > pretrimNames.txt
-sed -i 's|.fastq.gz||' pretrimNames.txt
+if [ ! -e samples.txt ];then
+	#Create list of sample names including Dup1-Dup2
+	ls *_L001_R1_001.fastq.gz > samples.txt
+	sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
+	#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
+	ls *_R*.fastq.gz > pretrimNames.txt
+	sed -i 's|.fastq.gz||' pretrimNames.txt
+fi
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
