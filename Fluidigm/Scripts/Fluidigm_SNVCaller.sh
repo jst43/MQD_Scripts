@@ -30,9 +30,6 @@ while getopts ":fg:wh" opt; do
 				exit 1
 			fi
 			;;
-		w)
-			w=TRUE >&2
-			;;
 		h)
 			echo "Usage: $0 [-g GENE_PANEL] [-f FILEPATH (optional)] " >&2
 			echo
@@ -41,7 +38,6 @@ while getopts ":fg:wh" opt; do
 			echo "	-g		gene panel, provides links to the amplicon and"
 			echo "			degnerate primers files. Current options are"
 			echo "			8, 10, and 22"
-			echo "	-w		prevents vcf filterinf by --max-missing 1"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -144,15 +140,9 @@ for i in `cat names.txt`; do
         vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --minQ 30 --recode --out ./tempfiles/${i}_F1
         vcftools_0.1.13 --vcf ./tempfiles/${i}_F1.recode.vcf --min-meanDP 50 --recode --out ./tempfiles/${i}_F2
         mv ./tempfiles/${i}_F2.recode.vcf ./tempfiles/${i}_F2.vcf
-	if [ -z $w ]; then
-        	vcftools_0.1.13 --vcf ./tempfiles/${i}_F2.vcf --max-missing 1 --recode --out ./tempfiles/${i}_F3
-        	echo "Duplicates of ${i} were merged"
+       	vcftools_0.1.13 --vcf ./tempfiles/${i}_F2.vcf --max-missing 1 --recode --out ./tempfiles/${i}_F3
+       	echo "Duplicates of ${i} were merged"
 #Annotation
-        	perl ${TABLE_ANNOVAR} ./tempfiles/${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic81,clinvar_20170130,dbnsfp30a -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
-	else
-		echo "Duplicates of ${i} were merged"
-#Annotation
-                perl ${TABLE_ANNOVAR} ./tempfiles/${i}_F2.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic81,clinvar_20170130,dbnsfp30a -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
-	fi
+       	perl ${TABLE_ANNOVAR} ./tempfiles/${i}_F3.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${i}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic81,clinvar_20170130,dbnsfp30a -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
 echo "Analysis Finished"
