@@ -134,7 +134,7 @@ sed -i 's|-Dup1.sorted.realigned.recal.bam||' names.txt
 sed -i 's|./recal_bam/||' names.txt
 
 for i in `cat names.txt`; do
-        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics ./tempfiles/snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 1000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
+        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics ./tempfiles/snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
         vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --exclude $primerfile --recode --out ./tempfiles/${i}_RDP
         mv ./tempfiles/${i}_RDP.recode.vcf ./tempfiles/${i}_RDP.vcf
         vcftools_0.1.13 --vcf ./tempfiles/${i}.vcf --minQ 30 --recode --out ./tempfiles/${i}_F1
