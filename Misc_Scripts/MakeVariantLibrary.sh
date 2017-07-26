@@ -63,13 +63,27 @@ echo "Filepath is $filepath"
 
 cd $filepath
 
+mkdir tempLib
+
+cp ${sample_prefix}*${filestring} ./tempLib/
+cd ./tempLib/
+
 ls ${sample_prefix}*${filestring} > ${sample_prefix}_librarynames_${pipeline}.txt
 for i in `cat ${sample_prefix}_librarynames_${pipeline}.txt`; do
 	sed -i 's|^|'"${i}"'\t|' $i
 done
 
-cat ${sample_prefix}*${filestring} > ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt
-sed -i 's|'"${filestring}"'||' ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt
+cat `head -n 1 ${sample_prefix}_librarynames_${pipeline}.txt` > ${sample_prefix}_Library_${pipeline}_hg38multianno.txt
+for i in `tail -n +2 ${sample_prefix}_librarynames_${pipeline}.txt`; do
+	tail -n +2 $i > ${i}.tmp && mv ${i}.tmp $i
+	cat $i >> ${sample_prefix}_Library_${pipeline}_hg38multianno.txt
+done
+
+sed -i 's|'"${filestring}"'||' ${sample_prefix}_Library_${pipeline}_hg38multianno.txt
+
+mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ../
+cd ../
+rm -r tempLib/
 
 if [ -z $sample_prefix ];
 	then
