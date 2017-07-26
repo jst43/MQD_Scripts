@@ -80,6 +80,7 @@ for i in `tail -n +2 ${sample_prefix}_librarynames_${pipeline}.txt`; do
 done
 
 sed -i 's|'"${filestring}"'||' ${sample_prefix}_Library_${pipeline}_hg38multianno.txt
+sed -i '1!b;s|^.*\tChr|Sample\tChr|' ${sample_prefix}_Library_${pipeline}_hg38multianno.txt
 
 mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ../
 cd ../
