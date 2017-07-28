@@ -3,7 +3,7 @@ print(paste0("Biological Sample Prefix is ", sample_Line))
 
 #Read in Coverage table
 print("Reading in Coverage File")
-Coverage <- read.table("../Dependent_Files/Coverage_IntronsExons.csv",
+Coverage <- read.table("/home/joe/MQD_Scripts/Haloplex/Dependent_Files/Coverage_IntronsExons.csv",
                        header=TRUE,
                        quote="\"",
                        sep=",",
@@ -93,6 +93,7 @@ Coverage <- cbind(Coverage, samples_below_20)
 rm(samples_below_20)
 
 #Generate columns for Coverage which show how many duplicates of a sample cover that locus
+filenames <- filenames[grepl("dup", tolower(filenames))]
 filenames <- unique(unlist(strsplit(filenames, "_"))[seq(1,(2*length(filenames)),2)])
 generateSuffix <- function(filePrefix){
   indices <- grep(filePrefix, colnames(Coverage))
