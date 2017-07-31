@@ -5,10 +5,10 @@
 #This script removes the S Code from all fastq/fastq.gz files in a directory
 
 #CONSTANTS
-extension="_L001_R1_001.fastq"
+extension="_001.fastq"
 
 #COMMANDLINE VARIABLES
-while getopts "fgh" opt; do
+while getopts "fgl:ih" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -16,12 +16,21 @@ while getopts "fgh" opt; do
 		g)
 			extension+=".gz"
 			;;
+		l)
+			lane="_L00" >&2
+			lane+=$OPTARG >&2
+			;;
+		i)
+			haloplex=TRUE >&2
+			;;	
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-g		specifies .fastq.gz extension. The default extension is .fastq"
+			echo "	-l		sequencing lane number, usually 1-4"
+			echo "	-i		performs $0 on the Index fastq files used by Haloplex"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -41,17 +50,22 @@ if [ ! -d $filepath ]; then
 	exit 1
 fi
 
+r1_extension=${lane}_R1${extension}
+
 #SCRIPT
 echo "Filepath is $filepath"
 echo ""
-echo "File extension is $extension"
+echo "File extension is $r1_extension"
 
-ls *${extension} > Scode.txt
-sed -i "s|${extension}||" Scode.txt
+ls *${r1_extension} > Scode.txt
+sed -i "s|${r1_extension}||" Scode.txt
 sed -i 's|_S[0-9][0-9]*||' Scode.txt
 for k in `cat Scode.txt`; do
-        mv ${k}_S*_L001_R1_001.fastq.gz ${k}_L001_R1_001.fastq.gz
-        mv ${k}_S*_L001_R2_001.fastq.gz ${k}_L001_R2_001.fastq.gz
+        mv ${k}_S*${lane}${r1_extension} ${k}${lane}${r1_extension}
+        mv ${k}_S*${lane}_R2${extension} ${k}${lane}_R2${extension}
+	if [ -n $haloplex ]; then
+		mv ${k}_S*${lane}_I1${extension} ${k}${lane}_I1${extension}
+		mv ${k}_S*${lane}_I2${extension} ${k}${lane}_I2${extension}
 done
 
 rm Scode.txt
