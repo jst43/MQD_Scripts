@@ -61,11 +61,12 @@ ls *${r1_extension} > Scode.txt
 sed -i "s|${r1_extension}||" Scode.txt
 sed -i 's|_S[0-9][0-9]*||' Scode.txt
 for k in `cat Scode.txt`; do
-        mv ${k}_S*${lane}${r1_extension} ${k}${lane}${r1_extension}
+        mv ${k}_S*${r1_extension} ${k}${r1_extension}
         mv ${k}_S*${lane}_R2${extension} ${k}${lane}_R2${extension}
 	if [ -n $haloplex ]; then
 		mv ${k}_S*${lane}_I1${extension} ${k}${lane}_I1${extension}
 		mv ${k}_S*${lane}_I2${extension} ${k}${lane}_I2${extension}
+	fi
 done
 
 rm Scode.txt
