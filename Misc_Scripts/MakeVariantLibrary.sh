@@ -6,7 +6,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-while getopts ":p:s:fh" opt; do
+while getopts ":p:s:fr:h" opt; do
 	case $opt in
 		p)
 			pipeline=$OPTARG >&2
@@ -24,13 +24,18 @@ while getopts ":p:s:fh" opt; do
 		f)
 			filepath=$OPTARG >&2
 			;;
+		r)
+			rename_prefix=$OPTARG >&2
+			;;
 		h)
 			echo "Usage: $0 [ -p PIPELINE ] [ -s PREFIX ] [ -f FILEPATH ]" >&2
 			echo
 			echo "	-p		pipeline argument; choice of SNV or Pindel"
-			echo "	-s		sample prefix, eg. MP, DLBCL"
+			echo "	-s		sample prefix, eg. MP, DLBCL, if none given then file prefix"
+			echo "			will be 'All'"
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
+			echo "	-r		Specifies prefix name if not sample prefix or 'All'"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -86,8 +91,8 @@ mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ../
 cd ../
 rm -r tempLib/
 
-if [ -z $sample_prefix ];
-	then
-		mv ${sample_prefix}_librarynames_${pipeline}.txt All_librarynames_${pipeline}.txt
-		mv ${sample_prefix}_Library_${pipeline}_hg38_multianno.txt All_Library_${pipeline}_hg38_multianno.txt
+if [ $rename_prefix ]; then
+	mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ${rename_prefix}_Library_${pipeline}_hg38multianno.txt
+elif [ -z $sample_prefix ]; then
+	mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt All_Library_${pipeline}_hg38multianno.txt
 fi
