@@ -15,7 +15,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-while getopts ":fg:wh" opt; do
+while getopts ":fg:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
