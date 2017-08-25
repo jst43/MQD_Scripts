@@ -91,8 +91,10 @@ mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ../
 cd ../
 rm -r tempLib/
 
-if [ $rename_prefix ]; then
-	mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ${rename_prefix}_Library_${pipeline}_hg38multianno.txt
-elif [ -z $sample_prefix ]; then
-	mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt All_Library_${pipeline}_hg38multianno.txt
+if [ -z $sample_prefix ]; then
+	if [ $rename_prefix ]; then
+		mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt ${rename_prefix}_Library_${pipeline}_hg38multianno.txt
+	else
+		mv ${sample_prefix}_Library_${pipeline}_hg38multianno.txt All_Library_${pipeline}_hg38multianno.txt
+	fi
 fi
