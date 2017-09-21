@@ -94,7 +94,9 @@ rm(samples_below_20)
 
 #Generate columns for Coverage which show how many duplicates of a sample cover that locus
 filenames <- filenames[grepl("dup", tolower(filenames))]
-filenames <- unique(unlist(strsplit(filenames, "_"))[seq(1,(2*length(filenames)),2)])
+if(length(filenames)>1){
+  filenames <- unique(unlist(strsplit(filenames, "_"))[seq(1,(2*length(filenames)),2)])
+}
 generateSuffix <- function(filePrefix){
   indices <- grep(filePrefix, colnames(Coverage))
   fullNames <- colnames(Coverage)[indices]
