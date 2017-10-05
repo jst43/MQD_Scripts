@@ -21,12 +21,12 @@ while getopts ":fg:h" opt; do
 			filepath=$OPTARG >&2
 			;;
 		g)
-			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ]; then
+			if [ $OPTARG == 22 ] || [ $OPTARG == 10 ] || [ $OPTARG == 8 ] || [ $OPTARG == "Shubha" ]; then
 				genepanel=$OPTARG
 				ampliconfile="${fluidigmPrefix}Amplicons/amplicons_${genepanel}Panel.bed"
 				primerfile="${fluidigmPrefix}DegeneratePrimers/degeneratePrimers_${genepanel}Panel.txt"
 			else
-				echo "Unrecognised gene panel; current gene panels are 8, 10, and 22"
+				echo "Unrecognised gene panel; current gene panels are 8, 10, 22, and Shubha"
 				exit 1
 			fi
 			;;
@@ -37,7 +37,7 @@ while getopts ":fg:h" opt; do
 			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-g		gene panel, provides links to the amplicon and"
 			echo "			degnerate primers files. Current options are"
-			echo "			8, 10, and 22"
+			echo "			8, 10, 22, and Shubha"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -62,7 +62,7 @@ if [ ! -d $filepath ]; then
 fi
 
 if [ -z $genepanel ]; then
-	echo "This script requires a gene panel; current gene panels are 8, 10, and 22"
+	echo "This script requires a gene panel; current gene panels are 8, 10, 22, and Shubha"
 	exit 1
 fi
 
