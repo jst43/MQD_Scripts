@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#CONSTANTS
+VCFHEAD="/home/joe/MQD_Scripts/Misc_Scripts/Misc_Files/VCFhead.txt"
+
+#COMMANDLINE VARIABLES
+
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
+
+while getopts ":f:h" opt; do
+	case $opt in
+		f)
+			filepath=$OPTARG >&2
+			;;
+		h)
+			echo "Usage: $0 [-f FILEPATH ] " >&2
+			echo
+			echo "	-f		filepath of VCF to be processed"
+			echo "	-h		display this help message"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [ -z $filepath ]; then
+	echo "This script requires a filepath to a VCF"
+	exit 1
+fi
+
+if [ ! -d $filepath ]; then
+	echo "This script requires a valid filepath to the fastq file directory"
+	exit 1
+fi
+
+#Make check that file is a VCF file
+
+#SCRIPT
+
+tail -n +2 $filepath > body.txt
+rm $filepath
+cat $VCFHEAD body.txt > $filepath #Will this work?
