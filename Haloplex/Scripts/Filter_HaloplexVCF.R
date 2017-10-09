@@ -3,19 +3,21 @@
 require(readr)
 require(reshape2)
 
+#Constants
+TargetGene_Path <- "/home/joe/MQD_Scripts/Haloplex/Dependent_Files/Haloplex_targetGenes.csv"
+
 #Commandline variables
 args = commandArgs(trailingOnly=TRUE)
 if(length(args)!=1){
   stop("FilterVCF.R only accepts one input")
 }
 if(args[1]=="h" | args[1]=="help"){
-  stop("Usage: FilterVCF.R inputVCF.txt")
+  stop("Usage: Rscript FilterVCF.R inputVCF.txt")
 }
 VCF_Path <- args[1]
 print(paste("VCF Path is", VCF_Path))
 
 #Code
-TargetGene_Path <- "/home/joe/MQD_Scripts/Misc_Scripts/Misc_Files/Haloplex_targetGenes.csv"
 VCF_Name <- tail(strsplit(VCF_Path, "/")[[1]], n=1)
 Pipeline <- tail(strsplit(VCF_Name, "_")[[1]], n=2)[1]
 
