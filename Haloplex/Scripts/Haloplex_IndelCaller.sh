@@ -80,11 +80,14 @@ for i in `cat samplesPindel.txt`; do
 #Merging both duplicates and filtering vcf
         bgzip -c ${i}_D.vcf > ${i}_D.vcf.gz
         tabix -p vcf ${i}_D.vcf.gz
+	vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
+	mv ${i}_SI_F1.vcf ${i}_SI.vcf
         bgzip -c ${i}_SI.vcf > ${i}_SI.vcf.gz
         tabix -p vcf ${i}_SI.vcf.gz
-        vcftools_0.1.13 --vcf ${i}_SI.vcf --max-missing 1 --recode --out ${i}_SI_F1
 #Merging Deletion and Insertion
 	vcf-concat ${i}_D.vcf.gz ${i}_SI.vcf.gz > ${i}_DSI.vcf
+	vcftools_0.1.13 --vcf ${i}_DSI.vcf --min-meanDP 20 --recode --out ${k}_DSI_F2
+	mv ${i}_DSI_F2.vcf ${i}_DSI.vcf
 	java -jar ${PICARD} SortVcf I=${i}_DSI.vcf O=${i}_DSI.sorted.vcf SD=${hg38Dict}
 	less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
         cat $header ${i}_headless.vcf > ${i}_NewHead.vcf
