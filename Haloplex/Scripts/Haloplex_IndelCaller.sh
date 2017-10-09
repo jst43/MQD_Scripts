@@ -92,7 +92,7 @@ for i in `cat samplesPindel.txt`; do
 	less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
         cat $header ${i}_headless.vcf > ${i}_NewHead.vcf
 #Annotation hg38
-	perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ../pindel_anno/${i}_DSI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+	perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ../pindel_anno/${i}_DSI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
 done
 
 echo "lympSeq_Indels analysis was completed."
