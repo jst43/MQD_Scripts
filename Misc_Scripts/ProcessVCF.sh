@@ -2,6 +2,7 @@
 
 #CONSTANTS
 VCFHEAD="/home/joe/MQD_Scripts/Misc_Scripts/Misc_Files/VCFhead.txt"
+FilterVCF="/home/joe/MQD_Scripts/Misc_Scripts/FilterVCF.R"
 
 #COMMANDLINE VARIABLES
 
@@ -38,7 +39,7 @@ if [ -z $filepath ]; then
 	exit 1
 fi
 
-if [ ! -d $filepath ]; then
+if [ ! -e $filepath ]; then
 	echo "This script requires a valid filepath to the fastq file directory"
 	exit 1
 fi
@@ -48,5 +49,9 @@ fi
 #SCRIPT
 
 tail -n +2 $filepath > body.txt
-rm $filepath
-cat $VCFHEAD body.txt > $filepath #Will this work?
+cat $VCFHEAD body.txt > $filepath
+rm body.txt
+
+Rscript $FilterVCF $filepath
+
+sed -i 's|GERP.._RS|GERP++_RS|' $filepath
