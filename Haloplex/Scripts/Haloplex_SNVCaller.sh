@@ -92,5 +92,5 @@ for k in `cat samples.txt`; do
 	vcftools_0.1.13 --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
 	vcftools_0.1.13 --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
 	#Annotation
-	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_F2.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,esp6500siv2_all,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
+	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_F2.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f,f,f,f,f -nastring . -vcfinput
 done
