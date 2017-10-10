@@ -75,6 +75,13 @@ if(Pipeline=="Pindel"){
   VCF <- subset(VCF, VAF.Alt1>=0.015 | VAF.Alt2>=0.015)
 }
 
+#Fill Frequency and Reproducible feeds
+VCF$Frequency <- unlist(lapply(VCF$Variant.ID, function(x) sum(VCF$Variant.ID %in% x)))
+#Generate reproducible counts
+VCFDupVec <- paste0(gsub('.{1}$', '', VCF$Sample), VCF$Variant.ID)
+VCF$Reproducible <- unlist(lapply(VCFDupVec, function(x) sum(VCFDupVec %in% x)>1))
+VCF$Reproducible[!grepl("dup", tolower(VCF$Sample))] <- NA
+
 #Write to file
 print("Writing VCF")
 write.table(VCF, file=VCF_Name, quote=FALSE, sep="\t", row.names=FALSE)
