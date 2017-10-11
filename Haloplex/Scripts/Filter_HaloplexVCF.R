@@ -42,7 +42,7 @@ if(Pipeline=="SNV"){
   allele_info <- data.frame(allele_info, DP=rowSums(AD_Info, na.rm=TRUE))
 }
 VAF <- data.frame(VAF.Ref=(AD_Info$AD.Ref/allele_info$DP), VAF.Alt1=(AD_Info$AD.Alt1/allele_info$DP), VAF.Alt2=(AD_Info$AD.Alt2/allele_info$DP))
-Variant_ID <- paste0("Chr", VCF$Chr, ":", VCF$Start, "_", VCF$Ref, ">", VCF$Alt)
+Variant_ID <- paste0("chr", VCF$Chr, ":", VCF$Start, "_", VCF$Ref, ">", VCF$Alt)
 
 #Create Data Frame
 print("Creating VCF")
@@ -72,7 +72,7 @@ VCF <- subset(VCF, X1000g2015aug_eur=="." | as.numeric(X1000g2015aug_eur)<=0.01 
 VCF <- subset(VCF, Func.refGene=="exonic" | Func.refGene=="exonic;splicing" | Func.refGene=="splicing")
 if(Pipeline=="Pindel"){
   VCF <- subset(VCF, AD.Alt1>=5 | AD.Alt2>=5)
-  VCF <- subset(VCF, VAF.Alt1>=0.015 | VAF.Alt2>=0.015)
+#  VCF <- subset(VCF, VAF.Alt1>=0.015 | VAF.Alt2>=0.015)
 }
 
 #Fill Frequency and Reproducible feeds
