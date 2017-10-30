@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #CONSTANTS
-VCFHEAD="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/Haloplex_VCFHead.txt"
-FilterVCF="/home/joe/MQD_Scripts/Haloplex/Scripts/Filter_HaloplexVCF.R"
+VCFHEAD="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/Haloplex_VCFHead.txt"
+FilterVCF="/mnt/raid/Resources/MQD_Scripts/Haloplex/Scripts/Filter_HaloplexVCF.R"
 
 #COMMANDLINE VARIABLES
 
