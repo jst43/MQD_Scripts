@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #CONSTANTS
-TRIM_GALORE="/media/eguz/darwin/Resources/Software/trim_galore_zip/trim_galore"
-hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
-GATK="/media/eguz/darwin/Resources/Software/GenomeAnalysisTK.jar"
-All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
-TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
-humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
-fluidigmPrefix="/home/joe/MQD_Scripts/Fluidigm/Dependent_Files/"
+TRIM_GALORE="/mnt/raid/Resources/Software/trim_galore_zip/trim_galore"
+hg38="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.fa"
+GATK="/mnt/raid/Resources/Software/GenomeAnalysisTK.jar"
+All="/mnt/raid/Resources/hg38.p6/All.vcf"
+TABLE_ANNOVAR="/mnt/raid/Resources/Software/annovar/table_annovar.pl"
+humandb="/mnt/raid/Resources/Software/annovar/humandb"
+fluidigmPrefix="/mnt/raid/Resources/MQD_Scripts/Fluidigm/Dependent_Files/"
 
 #COMMANDLINE VARIABLES
 if [ $# -eq 0 ]; then
