@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #CONSTANTS
-hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
-GATK="/media/eguz/darwin/Resources/Software/GenomeAnalysisTK.jar"
-All="/media/eguz/darwin/Resources/hg38.p6/All.vcf"
-TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
-humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
-PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
-java="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
-LocatIt="/media/eguz/darwin/Resources/Software/LocatIt_v3.5.1.46.jar"
-dedup_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/dedup_amplicons38.bed"
-coverage_bed="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/coverage_amplicons38.bed"
+hg38="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.fa"
+GATK="/mnt/raid/Resources/Software/GenomeAnalysisTK.jar"
+All="/mnt/raid/Resources/hg38.p6/All.vcf"
+TABLE_ANNOVAR="/mnt/raid/Resources/Software/annovar/table_annovar.pl"
+humandb="/mnt/raid/Resources/Software/annovar/humandb"
+PICARD="/mnt/raid/Resources/Software/picard-tools-1.141/picard.jar"
+java="/mnt/raid/Resources/Software/jre1.8.0_112/bin/java"
+LocatIt="/mnt/raid/Resources/Software/LocatIt_v3.5.1.46.jar"
+dedup_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/dedup_amplicons38.bed"
+coverage_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/coverage_amplicons38.bed"
 
 #COMMANDLINE VARIABLES
 while getopts "fh" opt; do
