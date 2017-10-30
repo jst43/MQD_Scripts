@@ -4,7 +4,7 @@ require(readr)
 require(reshape2)
 
 #Constants
-TargetGene_Path <- "/home/joe/MQD_Scripts/Haloplex/Dependent_Files/Haloplex_targetGenes.csv"
+TargetGene_Path <- "/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/Haloplex_targetGenes.csv"
 
 #Commandline variables
 args = commandArgs(trailingOnly=TRUE)
