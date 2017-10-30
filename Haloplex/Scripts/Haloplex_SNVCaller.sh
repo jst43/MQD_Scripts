@@ -72,22 +72,22 @@ for k in `cat samples.txt`; do
 	#Remove Duplicates with LocatIt
 	$java -Xmx250g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ./tempfiles/${k}_RMD ./tempfiles/${k}.sam ${k}_L001_I2_001.fastq.gz
 	#Convert bam without duplicates in fastq file
-	java -Xmx250g -jar ${PICARD} SamToFastq I=./tempfiles/${k}_RMD.bam F=./tempfiles/${k}_R1.fastq F2=./tempfiles/${k}_R2.fastq
+	$java -Xmx250g -jar ${PICARD} SamToFastq I=./tempfiles/${k}_RMD.bam F=./tempfiles/${k}_R1.fastq F2=./tempfiles/${k}_R2.fastq
 	#Realign with bwa mem
 	bwa mem -R "@RG\tID:<${k}>\tLB:LIBRARY_NAME\tSM:<${k}>\tPL:ILLUMINA" ${hg38} ./tempfiles/${k}_R1.fastq ./tempfiles/${k}_R2.fastq > ./tempfiles/${k}_RMD.sam
 	#Create bam file, sort + index
-	samtools_1.2 view -bS ./tempfiles/${k}_RMD.sam > ./tempfiles/${k}.bam
-	samtools_1.2 sort ./tempfiles/${k}.bam ./tempfiles/${k}.sorted
-	samtools_1.2 index ./tempfiles/${k}.sorted.bam
+	samtools view -bS ./tempfiles/${k}_RMD.sam > ./tempfiles/${k}.bam
+	samtools sort ./tempfiles/${k}.bam ./tempfiles/${k}.sorted
+	samtools index ./tempfiles/${k}.sorted.bam
 	#Realigned and Indels
-	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -o ./tempfiles/${k}.bam.list
-	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./tempfiles/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
+	$java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -o ./tempfiles/${k}.bam.list
+	$java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./tempfiles/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 	#Recalibrator and quality control
-	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table
-	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
-	java -Xmx250g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $coverage_bed
+	$java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table
+	$java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
+	$java -Xmx250g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $coverage_bed
 	#Calling variants
-	java -Xmx250g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
+	$java -Xmx250g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
 	#Filtering	
 	vcftools_0.1.13 --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
 	vcftools_0.1.13 --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
