@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #CONSTANTS
-hg38="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.fa"
-hg38Dict="/media/eguz/darwin/Resources/hg38.p6/hg38_2MergeAll.dict"
-TABLE_ANNOVAR="/media/eguz/darwin/Resources/Software/annovar/table_annovar.pl"
-humandb="/media/eguz/darwin/Resources/Software/annovar/humandb"
-PICARD="/media/eguz/darwin/Resources/Software/picard-tools-1.141/picard.jar"
-header="/home/joe/MQD_Scripts/Haloplex/Dependent_Files/header.txt"
+hg38="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.fa"
+hg38Dict="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.dict"
+TABLE_ANNOVAR="/mnt/raid/Resources/Software/annovar/table_annovar.pl"
+humandb="/mnt/raid/Resources/Software/annovar/humandb"
+PICARD="/mnt/raid/Resources/Software/picard-tools-1.141/picard.jar"
+header="/mnt/raid/Reources/MQD_Scripts/Haloplex/Dependent_Files/header.txt"
 
 #COMMANDLINE VARIABLES
 while getopts "fh" opt; do
