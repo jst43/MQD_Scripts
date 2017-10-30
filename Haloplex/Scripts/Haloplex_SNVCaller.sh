@@ -89,8 +89,8 @@ for k in `cat samples.txt`; do
 	#Calling variants
 	$java -Xmx250g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
 	#Filtering	
-	vcftools_0.1.13 --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
-	vcftools_0.1.13 --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
+	vcftools --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
+	vcftools --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
 	#Annotation
 	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_F2.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
 done
