@@ -3,7 +3,7 @@ print(paste0("Biological Sample Prefix is ", sample_Line))
 
 #Read in Coverage table
 print("Reading in Coverage File")
-Coverage <- read.table("/home/joe/MQD_Scripts/Haloplex/Dependent_Files/Coverage_IntronsExons.csv",
+Coverage <- read.table("/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/Coverage_IntronsExons.csv",
                        header=TRUE,
                        quote="\"",
                        sep=",",
