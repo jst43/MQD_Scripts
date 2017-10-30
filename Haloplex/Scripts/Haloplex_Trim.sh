@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #CONSTANTS
-SureCallTRIMMER="/media/eguz/darwin/Resources/Software/SurecallTrimmer_v3.5.1.46.jar"
-java8="/media/eguz/darwin/Resources/Software/jre1.8.0_112/bin/java"
+SureCallTRIMMER="/mnt/raid/Resources/Software/SurecallTrimmer_v3.5.1.46.jar"
+java8="/mnt/raid/Resources/Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
 while getopts "fqb:h" opt; do
