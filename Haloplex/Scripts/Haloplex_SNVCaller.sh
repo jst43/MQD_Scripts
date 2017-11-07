@@ -60,6 +60,11 @@ echo ""
 
 cd $filepath
 
+if [ ! -d trimmed_fastq ]; then
+	echo "Directory trimmed_fastq not found"
+	exit 1
+fi
+
 #Make directories
 mkdir tempfiles
 mkdir recal_bam
