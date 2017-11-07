@@ -21,7 +21,7 @@ while getopts "fgl:ih" opt; do
 			lane+=$OPTARG >&2
 			;;
 		i)
-			haloplex=TRUE >&2
+			haloplex="TRUE" >&2
 			;;	
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
@@ -63,7 +63,7 @@ sed -i 's|_S[0-9][0-9]*||' Scode.txt
 for k in `cat Scode.txt`; do
         mv ${k}_S*${r1_extension} ${k}${r1_extension}
         mv ${k}_S*${lane}_R2${extension} ${k}${lane}_R2${extension}
-	if [ -n $haloplex ]; then
+	if [ $haloplex == "TRUE" ]; then
 		mv ${k}_S*${lane}_I1${extension} ${k}${lane}_I1${extension}
 		mv ${k}_S*${lane}_I2${extension} ${k}${lane}_I2${extension}
 	fi
