@@ -7,6 +7,7 @@ TABLE_ANNOVAR="/mnt/raid/Resources/Software/annovar/table_annovar.pl"
 humandb="/mnt/raid/Resources/Software/annovar/humandb"
 PICARD="/mnt/raid/Resources/Software/picard-tools-1.141/picard.jar"
 header="/mnt/raid/Reources/MQD_Scripts/Haloplex/Dependent_Files/header.txt"
+blacklist_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/blacklist.bed"
 
 #COMMANDLINE VARIABLES
 while getopts "fh" opt; do
@@ -87,7 +88,8 @@ for i in `cat samplesPindel.txt`; do
 #Merging Deletion and Insertion
 	vcf-concat ${i}_D.vcf.gz ${i}_SI.vcf.gz > ${i}_DSI.vcf
 	vcftools_0.1.13 --vcf ${i}_DSI.vcf --min-meanDP 20 --recode --out ${k}_DSI_F2
-	mv ${i}_DSI_F2.recode.vcf ${i}_DSI.vcf
+	bedtools intersect -v -a ${k}_DSI_F2.recode.vcf -b $blacklist_bed -header > ${k}_bedfiltered.vcf
+	mv ${i}_bedfiltered.vcf ${i}_DSI.vcf
 	java -jar ${PICARD} SortVcf I=${i}_DSI.vcf O=${i}_DSI.sorted.vcf SD=${hg38Dict}
 	less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
         cat $header ${i}_headless.vcf > ${i}_NewHead.vcf
