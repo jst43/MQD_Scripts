@@ -56,6 +56,11 @@ echo ""
 
 cd $filepath
 
+if [ ! -d recal_bam ]; then
+        echo "Directory recal_bam not found"
+        exit 1
+fi
+
 #Make directories
 mkdir pindeltemp
 mkdir pindel_anno
