@@ -11,6 +11,7 @@ java="/mnt/raid/Resources/Software/jre1.8.0_112/bin/java"
 LocatIt="/mnt/raid/Resources/Software/LocatIt_v3.5.1.46.jar"
 dedup_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/dedup_amplicons38.bed"
 coverage_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/coverage_amplicons38.bed"
+blacklist_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/blacklist.bed"
 
 #COMMANDLINE VARIABLES
 while getopts "fh" opt; do
@@ -91,6 +92,7 @@ for k in `cat samples.txt`; do
 	#Filtering	
 	vcftools --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
 	vcftools --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
+	bedtools intersect -v -a ./tempfiles/${k}_F2.recode.vcf -b $blacklist_bed -header > ${k}_bedfiltered.vcf
 	#Annotation
-	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_F2.recode.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
+	perl ${TABLE_ANNOVAR} ./tempfiles/${k}_bedfiltered.vcf ${humandb} -buildver hg38 -out ./vcf_anno/${k}_SNVs.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
 done
