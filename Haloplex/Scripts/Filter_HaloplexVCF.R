@@ -63,15 +63,41 @@ VCF <- data.frame(Sample=VCF$Sample,
 
 rm(AD_Info, allele_info, alt_allele, VAF, Variant_ID)
 
+droppedVariants <- function(nrow1, nrow2){
+  nVar <- nrow1-nrow2
+  percVar <- (nVar/nrow1)*100
+  print(paste0(nVar, " variants removed (", percVar, "%)"))
+}
+
 #Filtering
 print("Filtering VCF")
 Haloplex_targetGenes <- read_csv(TargetGene_Path, col_names = FALSE)
+print("Removing non-target Genes")
+row1 <- nrow(VCF)
 VCF <- VCF[which(VCF$Gene.refGene %in% Haloplex_targetGenes$X1),]
+row2 <- nrow(VCF)
+droppedVariants(row1, row2)
+print("Removing synonymous SNVs")
+row1 <- row2
 VCF <- subset(VCF, ExonicFunc.refGene!="synonymous SNV")
+row2 <- nrow(VCF)
+droppedVariants(row1, row2)
+print("Filtering 1000G results")
+row1 <- row2
 VCF <- subset(VCF, X1000g2015aug_eur=="." | as.numeric(X1000g2015aug_eur)<=0.01 | (as.numeric(X1000g2015aug_eur)>0.01 & cosmic70!="."))
+row2 <- nrow(VCF)
+droppedVariants(row1, row2)
+print("Removing intronic variants")
+row1 <- row2
 VCF <- subset(VCF, Func.refGene=="exonic" | Func.refGene=="exonic;splicing" | Func.refGene=="splicing")
+row2 <- nrow(VCF)
+droppedVariants(row1, row2)
 if(Pipeline=="Pindel"){
+  print("Filtering Allele Depth")
+  row1 <- row2
   VCF <- subset(VCF, AD.Alt1>=5 | AD.Alt2>=5)
+  row2 <- nrow(VCF)
+  droppedVariants(row1, row2)
 #  VCF <- subset(VCF, VAF.Alt1>=0.015 | VAF.Alt2>=0.015)
 }
 
