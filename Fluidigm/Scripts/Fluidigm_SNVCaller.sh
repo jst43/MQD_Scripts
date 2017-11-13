@@ -114,19 +114,19 @@ for k in `cat samples.txt`; do
 	samtools sort ./tempfiles/${k}.bam -o ./sorted_bam/${k}.sorted.bam
 	samtools index ./sorted_bam/${k}.sorted.bam
 #Realigned and Indels
-	java -Xmx250g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -o ./tempfiles/${k}.bam.list -drf DuplicateRead
-	java -Xmx250g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
+	java -Xmx40g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -o ./tempfiles/${k}.bam.list -drf DuplicateRead
+	java -Xmx40g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 #Recalibrator and quality control
-	java -Xmx250g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table -drf DuplicateRead
-	java -Xmx250g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
-	java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $ampliconfile
+	java -Xmx40g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table -drf DuplicateRead
+	java -Xmx40g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
+	java -Xmx40g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $ampliconfile
 done
 
 #Coverage
 ls ./sorted_bam/*.sorted.bam > input_sortedbams.list
 ls ./recal_bam/*.sorted.realigned.recal.bam > input_recalbams.list
-java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_sortedbam.coverage -I input_sortedbams.list -L $ampliconfile
-java -Xmx80g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_recalbam.coverage -I input_recalbams.list -L $ampliconfile
+java -Xmx40g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_sortedbam.coverage -I input_sortedbams.list -L $ampliconfile
+java -Xmx40g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/Library_recalbam.coverage -I input_recalbams.list -L $ampliconfile
 
 #Calling variants + Filtering + Annotation
 ls ./recal_bam/*-Dup1.sorted.realigned.recal.bam > names.txt
@@ -134,7 +134,7 @@ sed -i 's|-Dup1.sorted.realigned.recal.bam||' names.txt
 sed -i 's|./recal_bam/||' names.txt
 
 for i in `cat names.txt`; do
-        java -Xmx250g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics ./tempfiles/snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
+        java -Xmx40g -jar ${GATK} -nt 20 -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${i}-Dup1.sorted.realigned.recal.bam -I ./recal_bam/${i}-Dup2.sorted.realigned.recal.bam -glm BOTH -D ${All} -metrics ./tempfiles/snps.metrics -stand_call_conf 30.0 -stand_emit_conf 10.0 -dcov 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${i}.vcf -drf DuplicateRead
         vcftools --vcf ./tempfiles/${i}.vcf --exclude $primerfile --recode --out ./tempfiles/${i}_RDP
         mv ./tempfiles/${i}_RDP.recode.vcf ./tempfiles/${i}_RDP.vcf
         vcftools --vcf ./tempfiles/${i}.vcf --minQ 30 --recode --out ./tempfiles/${i}_F1
