@@ -85,15 +85,12 @@ for k in `cat samples.txt`; do
 	samtools view -bS ./tempfiles/${k}_RMD.sam > ./tempfiles/${k}.bam
 	samtools sort ./tempfiles/${k}.bam -o ./tempfiles/${k}.sorted.bam
 	samtools index ./tempfiles/${k}.sorted.bam
-	#Realigned and Indels
-	$java -Xmx40g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -o ./tempfiles/${k}.bam.list
-	$java -Xmx40g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./tempfiles/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 	#Recalibrator and quality control
-	$java -Xmx40g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table
-	$java -Xmx40g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
-	$java -Xmx40g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.realigned.recal.bam -L $coverage_bed
+	$java -Xmx40g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.table
+	$java -Xmx40g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.bam -l INFO -BQSR ./tempfiles/${k}.sorted.table -o ./recal_bam/${k}.sorted.recal.bam
+	$java -Xmx40g -jar ${GATK} -T DepthOfCoverage -R ${hg38} -o ./coverage/${k}.coverage -I ./recal_bam/${k}.sorted.recal.bam -L $coverage_bed
 	#Calling variants
-	$java -Xmx40g -jar ${GATK} -T UnifiedGenotyper -R ${hg38} -I ./recal_bam/${k}.sorted.realigned.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
+	$java -Xmx40g -jar ${GATK} -T HaplotypeCaller -R ${hg38} -I ./recal_bam/${k}.sorted.recal.bam -glm BOTH --dbsnp ${All} -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ./tempfiles/${k}.vcf
 	#Filtering	
 	vcftools --vcf ./tempfiles/${k}.vcf --minQ 30 --recode --out ./tempfiles/${k}_F1
 	vcftools --vcf ./tempfiles/${k}_F1.recode.vcf --min-meanDP 20 --recode --out ./tempfiles/${k}_F2
