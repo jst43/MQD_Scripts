@@ -113,9 +113,6 @@ for k in `cat samples.txt`; do
 	samtools view -bS ./tempfiles/${k}.sam > ./tempfiles/${k}.bam
 	samtools sort ./tempfiles/${k}.bam -o ./sorted_bam/${k}.sorted.bam
 	samtools index ./sorted_bam/${k}.sorted.bam
-#Realigned and Indels
-	java -Xmx40g -jar ${GATK} -nt 20 -T RealignerTargetCreator -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -o ./tempfiles/${k}.bam.list -drf DuplicateRead
-	java -Xmx40g -jar ${GATK} -T IndelRealigner -R ${hg38} -I ./sorted_bam/${k}.sorted.bam -targetIntervals ./tempfiles/${k}.bam.list -o ./tempfiles/${k}.sorted.realigned.bam
 #Recalibrator and quality control
 	java -Xmx40g -jar ${GATK} -nct 20 -T BaseRecalibrator -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l info -knownSites ${All} -o ./tempfiles/${k}.sorted.realigned.table -drf DuplicateRead
 	java -Xmx40g -jar ${GATK} -nct 20 -T PrintReads -R ${hg38} -I ./tempfiles/${k}.sorted.realigned.bam -l INFO -BQSR ./tempfiles/${k}.sorted.realigned.table -o ./recal_bam/${k}.sorted.realigned.recal.bam
