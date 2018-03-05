@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #CONSTANTS
-SureCallTRIMMER="/mnt/raid/Resources/Software/SurecallTrimmer_v3.5.1.46.jar"
-java8="/mnt/raid/Resources/Software/jre1.8.0_112/bin/java"
+SureCallTRIMMER="../../../Software/SurecallTrimmer_v4.0.1.jar"
+java8="../../../Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fqb:h" opt; do
+while getopts "fqh" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -54,34 +54,37 @@ echo ""
 
 ./Haloplex_Input.py $filepath
 
-cd $filepath
-
 while read inputname <&3 && read outputname <&4; do
-	mv $inputname $outputname
-done 3<original_names.txt 4<replacement_names.txt
+	mv ${filepath}${inputname} ${filepath}${outputname}
+done 3<${filepath}original_names.txt 4<${filepath}replacement_names.txt
 
-mkdir trimmed_fastq
+R1_name=`grep "^R1" ${filepath}fastq_types.txt | sed -e 's|R1 type:||'`
+R2_name=`grep "^R2" ${filepath}fastq_types.txt | sed -e 's|R2 type:||'`
+
+mkdir ${filepath}trimmed_fastq
 
 #Create list of sample names including Dup1-Dup2
-ls *_R1.fastq.gz > samples.txt
-sed -i 's|_R1.fastq.gz||' samples.txt
-#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
-ls *_R*.fastq.gz > pretrimNames.txt
-sed -i 's|.fastq.gz||' pretrimNames.txt
+(cd $filepath && ls *_${R1_name}.fastq.gz > samples.txt)
+sed -i "s|_${R1_name}.fastq.gz||" ${filepath}samples.txt
 
-for k in `cat samples.txt`; do
-#Check sequencing quality
+#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
+(cd $filepath && ls *_${R1_name}.fastq.gz > pretrim_names.txt)
+(cd $filepath && ls *_${R2_name}.fastq.gz >> pretrim_names.txt)
+sed -i 's|.fastq.gz||' ${filepath}pretrim_names.txt
+
+while read sample; do
+	#Check sequencing quality
 	if [ ! -z $qc ]; then
-		fastqc ${k}_R1.fastq.gz
-		fastqc ${k}_R2.fastq.gz
+		fastqc ${filepath}${sample}_${R1_name}.fastq.gz
+		fastqc ${filepath}${sample}_${R2_name}.fastq.gz
 	fi
-#Trimmed: Amplicon sizes should be 190-640 bp.SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
-	${java8} -Xmx40g -jar ${SureCallTRIMMER} -fq1 ${filepath}/${k}_R1.fastq.gz -fq2 ${filepath}/${k}_R2.fastq.gz -hs
-done
+	#SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
+	$java8 -Xmx40g -jar $SureCallTRIMMER -fq1 ${filepath}${sample}_${R1_name}.fastq.gz -fq2 ${filepath}${sample}_${R2_name}.fastq.gz -hs
+done <${filename}samples.txt
 
 #Rename SureCallTRIMMER output files
-for k in `cat pretrimNames.txt`; do
-	mv ${k}.*.fastq.gz ./trimmed_fastq/${k}.trimmed.fastq.gz;
-done
+while read pretrim; do
+	mv ${filepath}${pretrim}.*.fastq.gz ${filepath}trimmed_fastq/${pretrim}.trimmed.fastq.gz
+done <${filepath}pretrim_names.txt
 
-rm pretrimNames.txt
+rm ${filepath}pretrim_names.txt
