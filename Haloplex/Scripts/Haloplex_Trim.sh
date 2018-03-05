@@ -13,18 +13,12 @@ while getopts "fqb:h" opt; do
 		q)
 			qc=TRUE >&2
 			;;
-		b)
-			batchfile=$OPTARG >&2
-			sed 's|.fastq.gz||' $batchfile > pretrimNames.txt
-			sed 's|_L00[0-9]_R[1-2]_001||' pretrimNames.txt | uniq > samples.txt
-			;;
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] [ -q (optional) ]" >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
 			echo "	-q		performs quality check with fastqc"
-			echo "	-b		reads in batch sample file to run on"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -62,14 +56,12 @@ cd $filepath
 
 mkdir trimmed_fastq
 
-if [ -z $batchfile ];then
-	#Create list of sample names including Dup1-Dup2
-	ls *_R1_001.fastq.gz > samples.txt
-	sed -i 's|_R1_001.fastq.gz||' samples.txt
-	#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
-	ls *_R*.fastq.gz > pretrimNames.txt
-	sed -i 's|.fastq.gz||' pretrimNames.txt
-fi
+#Create list of sample names including Dup1-Dup2
+ls *_R1_001.fastq.gz > samples.txt
+sed -i 's|_R1_001.fastq.gz||' samples.txt
+#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
+ls *_R*.fastq.gz > pretrimNames.txt
+sed -i 's|.fastq.gz||' pretrimNames.txt
 
 for k in `cat samples.txt`; do
 #Check sequencing quality
