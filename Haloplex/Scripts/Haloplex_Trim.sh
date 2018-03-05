@@ -52,6 +52,8 @@ echo ""
 echo "Filepath is $filepath"
 echo ""
 
+./Haloplex_Input.py $filepath
+
 cd $filepath
 
 mkdir trimmed_fastq
