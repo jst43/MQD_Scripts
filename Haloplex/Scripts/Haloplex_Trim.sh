@@ -64,8 +64,8 @@ mkdir trimmed_fastq
 
 if [ -z $batchfile ];then
 	#Create list of sample names including Dup1-Dup2
-	ls *_L001_R1_001.fastq.gz > samples.txt
-	sed -i 's|_L001_R1_001.fastq.gz||' samples.txt
+	ls *_R1_001.fastq.gz > samples.txt
+	sed -i 's|_R1_001.fastq.gz||' samples.txt
 	#Create list of file prefixes to allow renaming of SureCallTRIMMER output files
 	ls *_R*.fastq.gz > pretrimNames.txt
 	sed -i 's|.fastq.gz||' pretrimNames.txt
@@ -74,11 +74,11 @@ fi
 for k in `cat samples.txt`; do
 #Check sequencing quality
 	if [ ! -z $qc ]; then
-		fastqc ${k}_L001_R1_001.fastq.gz
-		fastqc ${k}_L001_R2_001.fastq.gz
+		fastqc ${k}_R1_001.fastq.gz
+		fastqc ${k}_R2_001.fastq.gz
 	fi
 #Trimmed: Amplicon sizes should be 190-640 bp.SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
-	${java8} -Xmx40g -jar ${SureCallTRIMMER} -fq1 ${filepath}/${k}_L001_R1_001.fastq.gz -fq2 ${filepath}/${k}_L001_R2_001.fastq.gz -hs
+	${java8} -Xmx40g -jar ${SureCallTRIMMER} -fq1 ${filepath}/${k}_R1_001.fastq.gz -fq2 ${filepath}/${k}_R2_001.fastq.gz -hs
 done
 
 #Rename SureCallTRIMMER output files
