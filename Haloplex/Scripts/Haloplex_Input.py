@@ -1,3 +1,10 @@
+#!/usr/bin/python3
+"""Moves to target directory, and for all fastq.gz files a Sample instance is created.
+These objects are used to ensure correct input names for files, as well as correct
+output names. Other QC checks ensure that each biological sample has 4 files (2 index,
+2 read) and defines which fastq type ('R1','R2','R3','I1','I2') is associated with index
+for deduplication, and which types correspond to Read 1 and Read 2."""
+# PACKAGES
 import os
 import argparse
 import gzip
@@ -126,6 +133,6 @@ with open("replacement_names.txt", 'w') as handle:
     handle.writelines(sorted(outputnames))
 
 with open('fastq_types.txt', 'w') as handle:
-    handle.write('Index type:{}\n'.format(index_type))
+    handle.write('Index type:{}\n'.format(list(index_type)[0]))
     handle.write('R1 type:{}\n'.format(read_type_sorted[0]))
     handle.write('R2 type:{}\n'.format(read_type_sorted[1]))
