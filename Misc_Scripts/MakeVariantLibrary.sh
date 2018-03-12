@@ -16,6 +16,9 @@ while getopts ":p:s:fr:h" opt; do
 			elif [ ${pipeline} == "Pindel" ];
 			then
 			        filestring="_DSI.myanno.hg38_multianno.txt"
+			elif [ ${pipeline} == "Hotspot" ];
+			then
+				filestring="_hotspot.myanno.hg38_multianno.txt"
 			fi
 			;;
 		s)
