@@ -6,7 +6,7 @@ GATK="../../..//Software/GenomeAnalysisTK.jar"
 All="../../../hg38.p6/All.vcf"
 PICARD="../../../Software/picard-tools-1.141/picard.jar"
 java="../../../Software/jre1.8.0_112/bin/java"
-LocatIt="../../../Software/LocatIt_v3.5.1.46.jar"
+LocatIt="../../../Software/LocatIt_v4.0.1.jar"
 dedup_bed="../Dependent_Files/dedup_amplicons38.bed"
 coverage_bed="../Dependent_Files/coverage_amplicons38.bed"
 
@@ -59,6 +59,7 @@ Index_name=`grep "Index" ${filepath}fastq_types.txt | sed -e 's|Index type:||'`
 
 #Make directories
 mkdir tempfiles
+mkdir dedup_data
 mkdir recal_bam
 mkdir coverage
 mkdir vcf_anno
@@ -68,7 +69,8 @@ while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
 	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 trimmed_fastq/${lane}_${R1_name}.trimmed.fastq.gz trimmed_fastq/${lane}_${R2_name}.trimmed.fastq.gz > tempfiles/${nolane}.sam
 	#Remove Duplicates with LocatIt
-	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o tempfiles/${nolane}_RMD tempfiles/${nolane}.sam ${lane}_${Index_name}.fastq.gz
+	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o tempfiles/${nolane}_Dedup tempfiles/${nolane}.sam ${lane}_${Index_name}.fastq.gz
+	mv tempfiles/${nolane}_Dedup.properties dedup_data/
 	#Convert bam without duplicates in fastq file
 	$java -Xmx40g -jar $PICARD SamToFastq I=tempfiles/${nolane}_RMD.bam F=tempfiles/${nolane}_${R1_name}.fastq F2=tempfiles/${nolane}_${R2_name}.fastq
 	#Realign with bwa mem
