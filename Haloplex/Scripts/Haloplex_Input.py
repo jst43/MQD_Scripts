@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """Moves to target directory, and for all fastq.gz files a Sample instance is created.
 These objects are used to ensure correct input names for files, as well as correct
 output names. Other QC checks ensure that each biological sample has 4 files (2 index,
