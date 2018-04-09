@@ -39,18 +39,7 @@ if [ ! -d $filepath ]; then
 fi
 
 #SCRIPT
-echo "######################################################"
-echo "#                   Haloplex_Trim                    #"
-echo "#       Writen by Joe Thompson (jst43@cam.ac.uk)     #"
-echo "#                                                    #"
-echo "#                   November 3rd 2016                #"
-echo "# This Bash script uses the following software under #"
-echo "#    GNU Public license v2: fastqc                   #"
-echo "#                                                    #"
-echo "######################################################"
-echo ""
 echo "Filepath is $filepath"
-echo ""
 
 ./Haloplex_Input.py $filepath
 
