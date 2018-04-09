@@ -72,9 +72,9 @@ while read lane <&3 && read nolane <&4; do
 	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o tempfiles/${nolane}_Dedup tempfiles/${nolane}.sam ${lane}_${Index_name}.fastq.gz
 	mv tempfiles/${nolane}_Dedup.properties dedup_data/
 	#Convert bam without duplicates in fastq file
-	$java -Xmx40g -jar $PICARD SamToFastq I=tempfiles/${nolane}_RMD.bam F=tempfiles/${nolane}_${R1_name}.fastq F2=tempfiles/${nolane}_${R2_name}.fastq
+	$java -Xmx40g -jar $PICARD SamToFastq I=tempfiles/${nolane}_Dedup.bam F=tempfiles/${nolane}_${R1_name}.fastq F2=tempfiles/${nolane}_${R2_name}.fastq
 	#Realign with bwa mem
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 tempfiles/${nolane}_${R1_name}.fastq tempfiles/${nolane}_${R2_name}.fastq > tempfiles/${nolane}_RMD.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 tempfiles/${nolane}_${R1_name}.fastq tempfiles/${nolane}_${R2_name}.fastq > tempfiles/${nolane}_Dedup.sam
 	#Create bam file, sort + index
 	samtools view -bS tempfiles/${nolane}_RMD.sam > tempfiles/${nolane}.bam
 	samtools sort tempfiles/${nolane}.bam -o tempfiles/${nolane}.sorted.bam
