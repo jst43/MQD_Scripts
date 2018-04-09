@@ -76,7 +76,7 @@ while read lane <&3 && read nolane <&4; do
 	#Realign with bwa mem
 	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 tempfiles/${nolane}_${R1_name}.fastq tempfiles/${nolane}_${R2_name}.fastq > tempfiles/${nolane}_Dedup.sam
 	#Create bam file, sort + index
-	samtools view -bS tempfiles/${nolane}_RMD.sam > tempfiles/${nolane}.bam
+	samtools view -bS tempfiles/${nolane}_Dedup.sam > tempfiles/${nolane}.bam
 	samtools sort tempfiles/${nolane}.bam -o tempfiles/${nolane}.sorted.bam
 	samtools index tempfiles/${nolane}.sorted.bam
 	#Recalibrator and quality control
