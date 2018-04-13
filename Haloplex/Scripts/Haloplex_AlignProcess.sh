@@ -2,7 +2,7 @@
 
 #CONSTANTS
 hg38="../../../hg38.p6/hg38_2MergeAll.fa"
-GATK="../../../Software/GenomeAnalysisTK.jar"
+GATKv3_5="../../../Software/GenomeAnalysisTK_v3.5.jar"
 All="../../../hg38.p6/All.vcf"
 PICARD="../../../Software/picard-tools-1.141/picard.jar"
 java="../../../Software/jre1.8.0_112/bin/java"
@@ -77,6 +77,6 @@ while read lane <&3 && read nolane <&4; do
 	samtools sort tempfiles/${nolane}.bam -o tempfiles/${nolane}.sorted.bam
 	samtools index tempfiles/${nolane}.sorted.bam
 	#Recalibrator and quality control
-	$java -Xmx40g -jar $GATK -nct 20 -T BaseRecalibrator -R $hg38 -I tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o tempfiles/${nolane}.sorted.table
-	$java -Xmx40g -jar $GATK -nct 20 -T PrintReads -R $hg38 -I tempfiles/${nolane}.sorted.bam -l INFO -BQSR tempfiles/${nolane}.sorted.table -o recal_bam/${nolane}.sorted.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o tempfiles/${nolane}.sorted.table
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I tempfiles/${nolane}.sorted.bam -l INFO -BQSR tempfiles/${nolane}.sorted.table -o recal_bam/${nolane}.sorted.recal.bam
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
