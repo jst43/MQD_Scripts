@@ -43,9 +43,7 @@ fi
 #SCRIPT
 echo "Filepath is $filepath"
 
-cd $filepath
-
-if [ ! -d trimmed_fastq ]; then
+if [ ! -d ${filepath}trimmed_fastq ]; then
         echo "Directory trimmed_fastq not found"
         exit 1
 fi
@@ -58,25 +56,25 @@ R2_name=`grep "^R2" ${filepath}fastq_types.txt | sed -e 's|R2 type:||'`
 Index_name=`grep "Index" ${filepath}fastq_types.txt | sed -e 's|Index type:||'`
 
 #Make directories
-mkdir tempfiles
-mkdir dedup_data
-mkdir recal_bam
+mkdir ${filepath}tempfiles
+mkdir ${filepath}dedup_data
+mkdir ${filepath}recal_bam
 
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 trimmed_fastq/${lane}_${R1_name}.trimmed.fastq.gz trimmed_fastq/${lane}_${R2_name}.trimmed.fastq.gz > tempfiles/${nolane}.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}trimmed_fastq/${lane}_${R1_name}.trimmed.fastq.gz ${filepath}trimmed_fastq/${lane}_${R2_name}.trimmed.fastq.gz > ${filepath}tempfiles/${nolane}.sam
 	#Remove Duplicates with LocatIt
 	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o tempfiles/${nolane}_Dedup tempfiles/${nolane}.sam ${lane}_${Index_name}.fastq.gz
-	mv tempfiles/${nolane}_Dedup.properties dedup_data/
+	mv ${filepath}tempfiles/${nolane}_Dedup.properties ${filepath}dedup_data/
 	#Convert bam without duplicates in fastq file
-	$java -Xmx40g -jar $PICARD SamToFastq I=tempfiles/${nolane}_Dedup.bam F=tempfiles/${nolane}_${R1_name}.fastq F2=tempfiles/${nolane}_${R2_name}.fastq
+	$java -Xmx40g -jar $PICARD SamToFastq I=${filepath}tempfiles/${nolane}_Dedup.bam F=${filepath}tempfiles/${nolane}_${R1_name}.fastq F2=${filepath}tempfiles/${nolane}_${R2_name}.fastq
 	#Realign with bwa mem
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 tempfiles/${nolane}_${R1_name}.fastq tempfiles/${nolane}_${R2_name}.fastq > tempfiles/${nolane}_Dedup.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}tempfiles/${nolane}_${R1_name}.fastq ${filepath}tempfiles/${nolane}_${R2_name}.fastq > ${filepath}tempfiles/${nolane}_Dedup.sam
 	#Create bam file, sort + index
-	samtools view -bS tempfiles/${nolane}_Dedup.sam > tempfiles/${nolane}.bam
-	samtools sort tempfiles/${nolane}.bam -o tempfiles/${nolane}.sorted.bam
-	samtools index tempfiles/${nolane}.sorted.bam
+	samtools view -bS ${filepath}tempfiles/${nolane}_Dedup.sam > ${filepath}tempfiles/${nolane}.bam
+	samtools sort ${filepath}tempfiles/${nolane}.bam -o ${filepath}tempfiles/${nolane}.sorted.bam
+	samtools index ${filepath}tempfiles/${nolane}.sorted.bam
 	#Recalibrator and quality control
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o tempfiles/${nolane}.sorted.table
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I tempfiles/${nolane}.sorted.bam -l INFO -BQSR tempfiles/${nolane}.sorted.table -o recal_bam/${nolane}.sorted.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.table
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.table -o ${filepath}recal_bam/${nolane}.sorted.recal.bam
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
