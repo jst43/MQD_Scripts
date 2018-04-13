@@ -2,7 +2,7 @@
 
 #CONSTANTS
 hg38="../../../hg38.p6/hg38_2MergeAll.fa"
-GATK="../../..//Software/GenomeAnalysisTK.jar"
+GATK="../../../Software/GenomeAnalysisTK.jar"
 All="../../../hg38.p6/All.vcf"
 PICARD="../../../Software/picard-tools-1.141/picard.jar"
 java="../../../Software/jre1.8.0_112/bin/java"
