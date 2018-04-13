@@ -5,7 +5,7 @@ SureCallTRIMMER="../../../Software/SurecallTrimmer_v4.0.1.jar"
 java8="../../../Software/jre1.8.0_112/bin/java"
 
 #COMMANDLINE VARIABLES
-while getopts "fqh" opt; do
+while getopts "f:qh" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -41,7 +41,7 @@ fi
 #SCRIPT
 echo "Filepath is $filepath"
 
-./Haloplex_Input.py $filepath
+./Haloplex_Input.py -f $filepath
 
 while read inputname <&3 && read outputname <&4; do
 	mv ${filepath}${inputname} ${filepath}${outputname}
@@ -69,7 +69,7 @@ while read sample; do
 	fi
 	#SureCall processes the read sequences to trim low quality bases from the ends, remove adaptor sequences, and mask enzyme footprints (for HaloPlex).
 	$java8 -Xmx40g -jar $SureCallTRIMMER -fq1 ${filepath}${sample}_${R1_name}.fastq.gz -fq2 ${filepath}${sample}_${R2_name}.fastq.gz -hs
-done <${filename}samples.txt
+done <${filepath}samples.txt
 
 #Rename SureCallTRIMMER output files
 while read pretrim; do
