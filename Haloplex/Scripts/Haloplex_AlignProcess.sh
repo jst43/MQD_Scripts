@@ -58,7 +58,7 @@ Index_name=`grep "Index" ${filepath}fastq_types.txt | sed -e 's|Index type:||'`
 #Make directories
 mkdir ${filepath}tempfiles
 mkdir ${filepath}dedup_data
-mkdir ${filepath}recal_bam
+mkdir ${filepath}realigned_recal_bam
 
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
@@ -74,7 +74,10 @@ while read lane <&3 && read nolane <&4; do
 	samtools view -bS ${filepath}tempfiles/${nolane}_Dedup.sam > ${filepath}tempfiles/${nolane}.bam
 	samtools sort ${filepath}tempfiles/${nolane}.bam -o ${filepath}tempfiles/${nolane}.sorted.bam
 	samtools index ${filepath}tempfiles/${nolane}.sorted.bam
+	#Realigned and Indels
+	$java -Xmx40g -jar $GATKv3_5 -nt 20 -T RealignerTargetCreator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -o ${filepath}tempfiles/${nolane}.bam.list
+	$java -Xmx40g -jar $GATKv3_5 -T IndelRealigner -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -targetIntervals ${filepath}tempfiles/${nolane}.bam.list -o ${filepath}tempfiles/${nolane}.sorted.realigned.bam
 	#Recalibrator and quality control
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.table
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.table -o ${filepath}recal_bam/${nolane}.sorted.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.realigned.table
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.realigned.table -o ${filepath}recal_bam/${nolane}.sorted.realigned.recal.bam
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
