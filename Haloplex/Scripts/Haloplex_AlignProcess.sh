@@ -1,4 +1,4 @@
-#!/bin/bash/
+#!/bin/bash
 
 #CONSTANTS
 hg38="../../../hg38.p6/hg38_2MergeAll.fa"
