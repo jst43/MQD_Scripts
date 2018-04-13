@@ -61,8 +61,6 @@ Index_name=`grep "Index" ${filepath}fastq_types.txt | sed -e 's|Index type:||'`
 mkdir tempfiles
 mkdir dedup_data
 mkdir recal_bam
-mkdir coverage
-mkdir vcf_anno
 
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
