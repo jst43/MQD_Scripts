@@ -79,5 +79,5 @@ while read lane <&3 && read nolane <&4; do
 	$java -Xmx40g -jar $GATKv3_5 -T IndelRealigner -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -targetIntervals ${filepath}tempfiles/${nolane}.bam.list -o ${filepath}tempfiles/${nolane}.sorted.realigned.bam
 	#Recalibrator and quality control
 	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.realigned.table
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.realigned.table -o ${filepath}recal_bam/${nolane}.sorted.realigned.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.realigned.table -o ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
