@@ -64,7 +64,6 @@ mkdir recal_bam
 mkdir coverage
 mkdir vcf_anno
 
-#Change names outputs trimming software!!!!
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
 	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 trimmed_fastq/${lane}_${R1_name}.trimmed.fastq.gz trimmed_fastq/${lane}_${R2_name}.trimmed.fastq.gz > tempfiles/${nolane}.sam
@@ -82,5 +81,4 @@ while read lane <&3 && read nolane <&4; do
 	#Recalibrator and quality control
 	$java -Xmx40g -jar $GATK -nct 20 -T BaseRecalibrator -R $hg38 -I tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o tempfiles/${nolane}.sorted.table
 	$java -Xmx40g -jar $GATK -nct 20 -T PrintReads -R $hg38 -I tempfiles/${nolane}.sorted.bam -l INFO -BQSR tempfiles/${nolane}.sorted.table -o recal_bam/${nolane}.sorted.recal.bam
-	$java -Xmx40g -jar $GATK -T DepthOfCoverage -R $hg38 -o coverage/${nolane}.coverage -I recal_bam/${nolane}.sorted.recal.bam -L $coverage_bed
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
