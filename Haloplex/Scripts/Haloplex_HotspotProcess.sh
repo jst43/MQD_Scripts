@@ -38,13 +38,9 @@ if [ ! -d $filepath ]; then
 	exit 1
 fi
 
-mkdir MuTectBam_In
-mkdir MuTectBam_Out
-mkdir MuTectVCF
+mkdir recal_bam
 
 while read pfx; do
-	java -Xmx40g -jar ${GATK_v3_5} -nct 20 -T BaseRecalibrator -R $hg38 -I tempfiles/${pfx}.sorted.bam -l info -knownSites $All -o tempfiles/${pfx}.sorted.table
-	java -Xmx40g -jar ${GATK_v3_5} -nct 20 -T PrintReads -R $hg38 -I tempfiles/${pfx}.sorted.bam -l INFO -BQSR tempfiles/${pfx}.sorted.table -o MuTectBam_In/${pfx}.sorted.recal.bam
-	java -jar ${GATK_v3_8} -T MuTect2 -R $hg38 -I:tumor MuTectBam_In/${pfx}.sorted.recal.bam --dbsnp $dbsnp --maxReadsInRegionPerSample 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -bamout MuTectBam_Out/${pfx}.out.bam -o MuTectVCF/${pfx}_hotspot.vcf -L hotspotsMuTect2.list
-	perl $TABLE_ANNOVAR MuTectVCF/${pfx}_hotspot.vcf $humandb -buildver hg38 -out MuTectVCF/${pfx}_hotspot.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
-done <samples_noLane.txt
+	java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.table
+	java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.table -o ${filepath}recal_bam/${nolane}.sorted.recal.bam
+done <${filepath}samples_noLane.txt
