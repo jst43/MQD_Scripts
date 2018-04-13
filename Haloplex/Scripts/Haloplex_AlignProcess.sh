@@ -11,7 +11,7 @@ dedup_bed="../Dependent_Files/dedup_amplicons38.bed"
 coverage_bed="../Dependent_Files/coverage_amplicons38.bed"
 
 #COMMANDLINE VARIABLES
-while getopts "fh" opt; do
+while getopts "f:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
