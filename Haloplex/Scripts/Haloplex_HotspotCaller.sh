@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GATK_v3_8="../../../Software/GenomeAnalysisTKi_v3.8.jar"
+GATKv3_8="../../../Software/GenomeAnalysisTK_v3.8.jar"
 hg38="../../../hg38.p6/hg38_2MergeAll.fa"
 dbsnp="../../../hg38.p6/All.vcf"
 hotspots="../Dependent_Files/hotspots.list"
