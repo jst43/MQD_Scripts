@@ -62,7 +62,7 @@ mkdir ${filepath}realigned_recal_bam
 
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}trimmed_fastq/${lane}_${R1_name}.trimmed.fastq.gz ${filepath}trimmed_fastq/${lane}_${R2_name}.trimmed.fastq.gz > ${filepath}tempfiles/${nolane}.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}trimmed_fastq/${lane}_${R1_name}.trimmed2.fastq.gz ${filepath}trimmed_fastq/${lane}_${R2_name}.trimmed2.fastq.gz > ${filepath}tempfiles/${nolane}.sam
 	#Remove Duplicates with LocatIt
 	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ${filepath}tempfiles/${nolane}_Dedup ${filepath}tempfiles/${nolane}.sam ${filepath}${lane}_${Index_name}.fastq.gz
 	mv ${filepath}tempfiles/${nolane}_Dedup.properties ${filepath}dedup_data/
