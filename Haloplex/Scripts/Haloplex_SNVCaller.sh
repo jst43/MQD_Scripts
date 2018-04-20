@@ -2,7 +2,7 @@
 
 #CONSTANTS
 hg38="../../../hg38.p6/hg38_2MergeAll.fa"
-GATK="../../..//Software/GenomeAnalysisTK.jar"
+GATKv3_5="../../../Software/GenomeAnalysisTK_v3.5.jar"
 All="../../../hg38.p6/All.vcf"
 java="../../../Software/jre1.8.0_112/bin/java"
 
@@ -46,5 +46,5 @@ if [ ! -d ${filepath}realigned_recal_bam ]; then
 fi
 
 while read lane <&3 && read nolane <&4; do
-	$java -Xmx40g -jar $GATK -T HaplotypeCaller -R $hg38 -I ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam -glm BOTH --dbsnp $All -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ${filepath}tempfiles/${nolane}.vcf
+	$java -Xmx40g -jar $GATKv3_5 -T HaplotypeCaller -R $hg38 -I ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam -glm BOTH --dbsnp $All -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ${filepath}tempfiles/${nolane}.vcf
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
