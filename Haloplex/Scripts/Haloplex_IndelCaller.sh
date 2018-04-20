@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #CONSTANTS
-hg38="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.fa"
-hg38Dict="/mnt/raid/Resources/hg38.p6/hg38_2MergeAll.dict"
-TABLE_ANNOVAR="/mnt/raid/Resources/Software/annovar/table_annovar.pl"
-humandb="/mnt/raid/Resources/Software/annovar/humandb"
-PICARD="/mnt/raid/Resources/Software/picard-tools-1.141/picard.jar"
-header="/mnt/raid/Reources/MQD_Scripts/Haloplex/Dependent_Files/header.txt"
-blacklist_bed="/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/blacklist.bed"
+hg38="../../../hg38.p6/hg38_2MergeAll.fa"
+hg38Dict="../../../hg38.p6/hg38_2MergeAll.dict"
+TABLE_ANNOVAR="../../../Software/annovar/table_annovar.pl"
+humandb="../../../Software/annovar/humandb"
+PICARD="../../../Software/picard-tools-1.141/picard.jar"
+header="../header.txt"
+blacklist_bed="../blacklist.bed"
 
 #COMMANDLINE VARIABLES
-while getopts "fh" opt; do
+while getopts "f:h" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
@@ -40,17 +40,6 @@ if [ ! -d $filepath ]; then
 fi
 
 #SCRIPT
-echo "######################################################"
-echo "#                Haloplex_IndelsCaller               #"
-echo "#      Writen by Joe Thompson (jst43@cam.ac.uk)      #"
-echo "#                                                    #"
-echo "#                  July 11th 2017                    #"
-echo "# This Bash script uses the following software under #"
-echo "#         GNU Public license v2: Pindel, vcftools    #"
-echo "#                Picard and Annovar.                 #"
-echo "#                                                    #"
-echo "######################################################"
-echo ""
 echo "Filepath is $filepath"
 echo ""
 
@@ -65,8 +54,6 @@ fi
 mkdir pindeltemp
 mkdir pindel_anno
 
-cd pindeltemp
-
 #Create list of name samples
 ls ../recal_bam/*.recal.bam > samplesPindel.txt
 sed -i 's|../recal_bam/||' samplesPindel.txt
@@ -77,7 +64,6 @@ for k in `cat samplesPindel.txt`; do
 	sed -i 's|\(.\+\)\.sorted.realigned.recal.bam|\1\.sorted.realigned.recal.bam\t350\t\1|' ${k}_pindelinput.txt
 done
 
-#Run Pindel
 for i in `cat samplesPindel.txt`; do
 	pindel -f ${hg38} -i ${i}_pindelinput.txt -c ALL -o ${i}
 #Create vcf files of deletion and insertion out of pindel
@@ -96,10 +82,6 @@ for i in `cat samplesPindel.txt`; do
 	bedtools intersect -v -a ${k}_DSI_F2.recode.vcf -b $blacklist_bed -header > ${k}_bedfiltered.vcf
 	mv ${i}_bedfiltered.vcf ${i}_DSI.vcf
 	java -jar ${PICARD} SortVcf I=${i}_DSI.vcf O=${i}_DSI.sorted.vcf SD=${hg38Dict}
-	less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
-        cat $header ${i}_headless.vcf > ${i}_NewHead.vcf
-#Annotation hg38
-	perl ${TABLE_ANNOVAR} ${i}_NewHead.vcf ${humandb} -buildver hg38 -out ../pindel_anno/${i}_DSI.myanno -remove -protocol refGene,cytoBand,genomicSuperDups,1000g2015aug_eur,avsnp144,cosmic70,clinvar_20160302,ljb26_all -operation g,r,r,f,f,f,f,f -nastring . -vcfinput
+#	less ${i}_DSI.sorted.vcf | grep -v "#" > ${i}_headless.vcf
+#        cat $header ${i}_headless.vcf > ${i}_NewHead.vcf
 done
-
-echo "lympSeq_Indels analysis was completed."
