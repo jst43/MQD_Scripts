@@ -30,7 +30,7 @@ while getopts "f:qh" opt; do
 done
 
 if [ -z $filepath ]; then
-	filepath=`pwd`
+	filepath=`pwd`"/"
 fi
 
 if [ ! -d $filepath ]; then
