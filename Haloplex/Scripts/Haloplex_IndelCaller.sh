@@ -7,7 +7,7 @@ TABLE_ANNOVAR="../../../Software/annovar/table_annovar.pl"
 humandb="../../../Software/annovar/humandb"
 PICARD="../../../Software/picard-tools-1.141/picard.jar"
 header="../header.txt"
-blacklist_bed="../blacklist.bed"
+blacklist_bed="../Dependent_Files/blacklist.bed"
 
 #COMMANDLINE VARIABLES
 while getopts "f:h" opt; do
@@ -31,7 +31,7 @@ while getopts "f:h" opt; do
 done
 
 if [ -z $filepath ]; then
-	filepath=`pwd`
+	filepath=`pwd`"/"
 fi
 
 if [ ! -d $filepath ]; then
@@ -43,8 +43,8 @@ fi
 echo "Filepath is $filepath"
 echo ""
 
-if [ ! -d ${filepath}recal_bam ]; then
-        echo "Directory recal_bam not found"
+if [ ! -d ${filepath}realigned_recal_bam ]; then
+        echo "Directory realigned_recal_bam not found"
         exit 1
 fi
 
@@ -55,30 +55,20 @@ mkdir ${filepath}pindeltemp
 (cd ${filepath}realigned_recal_bam/ && ls *.recal.bam > ../samplesPindel.txt)
 sed -i 's|.sorted.realigned.recal.bam||' ${filepath}samplesPindel.txt
 
-#Create files: pindelinput.txt
-mkdir ${filepath}pindel_anno
-
 while read k; do
 	ls ${filepath}realigned_recal_bam/${k}.sorted.realigned.recal.bam > ${filepath}pindeltemp/${k}_pindelinput.txt
 	sed -i 's|\(.\+\)\.sorted.realigned.recal.bam|\1\.sorted.realigned.recal.bam\t350\t\1|' ${filepath}pindeltemp/${k}_pindelinput.txt
 	#Run Pindel
-	pindel -f $hg38 -i ${filepath}pindeltemp/${i}_pindelinput.txt -c ALL -o ${filepath}pindeltemp/${i}
+	pindel -f $hg38 -i ${filepath}pindeltemp/${k}_pindelinput.txt -c ALL -o ${filepath}pindeltemp/${k}
 	#Create vcf files of deletion and insertion out of pindel
-	pindel2vcf -p ${filepath}pindeltemp/${i}_D -r $hg38 -R GRCh38 -d 201312 -G -v ${filepath}pindeltemp/${i}_D.vcf
-	pindel2vcf -p ${filepath}pindeltemp/${i}_SI -r $hg38 -R GRCh38 -d 201312 -G -v ${filepath}pindeltemp/${i}_SI.vcf
-	#Merging both duplicates and filtering vcf
-        bgzip -c ${filepath}pindeltemp/${i}_D.vcf > ${filepath}pindeltemp/${i}_D.vcf.gz
-        tabix -p vcf ${filepath}pindeltemp/${i}_D.vcf.gz
-	#vcftools_0.1.13 --vcf ${filepath}pindeltemp/${i}_SI.vcf --max-missing 1 --recode --out ${filepath}pindeltemp/${i}_SI_F1
-	mv ${filepath}pindeltemp/${i}_SI_F1.recode.vcf ${filepath}pindeltemp/${i}_SI.vcf
-        bgzip -c ${filepath}pindeltemp/${i}_SI.vcf > ${filepath}pindeltemp/${i}_SI.vcf.gz
-        tabix -p vcf ${filepath}pindeltemp/${i}_SI.vcf.gz
+	pindel2vcf -p ${filepath}pindeltemp/${k}_D -r $hg38 -R GRCh38 -d 201312 -G -v ${filepath}pindeltemp/${k}_D.vcf
+	pindel2vcf -p ${filepath}pindeltemp/${k}_SI -r $hg38 -R GRCh38 -d 201312 -G -v ${filepath}pindeltemp/${k}_SI.vcf
+	bgzip -c ${filepath}pindeltemp/${k}_D.vcf > ${filepath}pindeltemp/${k}_D.vcf.gz
+	tabix -p vcf ${filepath}pindeltemp/${k}_D.vcf.gz
+	bgzip -c ${filepath}pindeltemp/${k}_SI.vcf > ${filepath}pindeltemp/${k}_SI.vcf.gz
+	tabix -p vcf ${filepath}pindeltemp/${k}_SI.vcf.gz
 	#Merging Deletion and Insertion
-	vcf-concat ${filepath}pindeltemp/${i}_D.vcf.gz ${filepath}pindeltemp/${i}_SI.vcf.gz > ${filepath}pindeltemp/${i}_DSI.vcf
-	#vcftools_0.1.13 --vcf ${filepath}pindeltemp/${i}_DSI.vcf --min-meanDP 20 --recode --out ${filepath}pindeltemp/${k}_DSI_F2
-	#bedtools intersect -v -a ${filepath}pindeltemp/${k}_DSI_F2.recode.vcf -b $blacklist_bed -header > ${filepath}pindeltemp/${k}_bedfiltered.vcf
-	mv ${filepath}pindeltemp/${i}_bedfiltered.vcf ${filepath}pindeltemp/${i}_DSI.vcf
-	java -jar $PICARD SortVcf I=${filepath}pindeltemp/${i}_DSI.vcf O=${filepath}pindeltemp/${i}_DSI.sorted.vcf SD=${hg38Dict}
-#	less ${filepath}pindeltemp/${i}_DSI.sorted.vcf | grep -v "#" > ${filepath}pindeltemp/${i}_headless.vcf
-#       cat $header ${filepath}pindeltemp/${i}_headless.vcf > ${filepath}pindeltemp/${i}_NewHead.vcf
+	vcf-concat ${filepath}pindeltemp/${k}_D.vcf.gz ${filepath}pindeltemp/${k}_SI.vcf.gz > ${filepath}pindeltemp/${k}_DSI.vcf
+	bedtools intersect -v -a ${filepath}pindeltemp/${k}_DSI.vcf -b $blacklist_bed -header > ${filepath}pindeltemp/${k}_DSI.bedfiltered.vcf
+	java -jar $PICARD SortVcf I=${filepath}pindeltemp/${k}_DSI.bedfiltered.vcf O=${filepath}pindeltemp/${k}_DSI.bedfiltered.sorted.vcf SD=${hg38Dict}
 done <${filepath}samplesPindel.txt
