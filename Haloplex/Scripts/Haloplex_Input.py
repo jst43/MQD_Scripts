@@ -125,7 +125,7 @@ def sort_samples(fastq_samples, index_type, read_type_unique):
   try:
     assert len(index_type) == 1
   except AssertionError:
-    raise Exception('There should only be one class of read fastq, %i found' % len(index_type))
+    raise Exception('There should only be one class of index fastq, %i found' % len(index_type))
   #Find which read_type has the smallest number, that read type will be 'Read 1'
   # the other will be 'Read 2'
   read_type_sorted = sorted(list(read_type_unique))
