@@ -86,5 +86,8 @@ while read pfx; do
 			--pick \
 			--plugin dbNSFP,${VEP_dir}/dbNSFP.gz,SIFT_score,SIFT_pred,Polyphen2_HDIV_score,Polyphen2_HDIV_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred,LRT_score,LRT_pred,MutationTaster_score,MutationTaster_pred,MutationAssessor_score,MutationAssessor_pred,FATHMM_score,FATHMM_pred,VEST3_score,CADD_raw,CADD_phred,GERP++_RS,phyloP100way_vertebrate,SiPhy_29way_logOdds,clinvar_clnsig,MetaSVM_score,MetaSVM_pred,MetaLR_score,MetaLR_pred \
 			-o ${filepath}${outdir}/${pfx}${new_suffix}
+		sed -i 's|#Uploaded_variation|Uploaded_variation|' ${filepath}${outdir}/${pfx}${new_suffix}
+		grep -v "#" ${filepath}${outdir}/${pfx}${new_suffix} > ${filepath}${outdir}/temp.tsv
+		mv ${filepath}${outdir}/temp.tsv ${filepath}${outdir}/${pfx}${new_suffix}
 	done
 done <${filepath}samples_noLane.txt
