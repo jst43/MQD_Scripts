@@ -54,6 +54,7 @@ fi
 mkdir ${filepath}snv_anno
 mkdir ${filepath}pindel_anno
 mkdir ${filepath}hotspot_anno
+mkdir ${filepath}Output
 
 while read pfx; do
 	for directory in tempfiles pindeltemp hotspot_vcf; do
@@ -91,3 +92,5 @@ while read pfx; do
 		mv ${filepath}${outdir}/temp.tsv ${filepath}${outdir}/${pfx}${new_suffix}
 	done
 done <${filepath}samples_noLane.txt
+
+./Haloplex_MergeTSV.R ${filepath}
