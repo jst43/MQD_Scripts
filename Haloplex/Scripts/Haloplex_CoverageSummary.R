@@ -177,8 +177,9 @@ add_failure_at_locus <- function(coverage, prefixes){
 
 write_coverage <- function(coverage, stats_matrix, filepath){
   print("Writing to file")
+  dir.create(paste0(filepath,'Output'), showWarnings=FALSE)
   write.csv(coverage,
-            file=paste0(filepath,"coverage/Coverage.csv"),
+            file=paste0(filepath,"Output/Coverage.csv"),
             row.names=FALSE,
             quote=FALSE)
   for(i in 1:nrow(stats_matrix)){
@@ -219,4 +220,4 @@ main <- function(){
 }
 
 
-#main()
+main()
