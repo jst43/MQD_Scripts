@@ -1,145 +1,222 @@
-sample_Line <- commandArgs(trailingOnly=TRUE)
-print(paste0("Biological Sample Prefix is ", sample_Line))
+#!/usr/bin/Rscript
 
-#Read in Coverage table
-print("Reading in Coverage File")
-Coverage <- read.table("/mnt/raid/Resources/MQD_Scripts/Haloplex/Dependent_Files/Coverage_IntronsExons.csv",
-                       header=TRUE,
-                       quote="\"",
-                       sep=",",
-                       stringsAsFactors=FALSE)
 
-filenames <- Sys.glob(paste0(sample_Line,"*coverage"))
-
-#For each file, read in the total depth column and add to Coverage
-print("Importing coverage data")
-for(Coveragefile in filenames){
-  Prefix <- strsplit(Coveragefile, split=".c")[[1]][1]
-  Coverage <- cbind(Coverage, read.csv(file=Coveragefile,
-                                       sep="\t",
-                                       stringsAsFactors=FALSE,
-                                       colClasses=c("NULL", "NULL", "NULL", NA)))
-  colnames(Coverage) <- c(colnames(Coverage)[1:(ncol(Coverage)-1)], Prefix)
-}
-rm(Coveragefile, Prefix)
-
-#Remove all rows in Coverage which do not correspond to Exons
-Coverage <- Coverage[which(grepl("Exon", Coverage[,1])),]
-rownames(Coverage) <- NULL
-
-#Add columns for Average Depth at locus, and Total Depth at locus
-if(length(filenames)>1){
-  Coverage <- cbind(Coverage[,1:2],
-                    Total_Depth=rowSums(Coverage[,3:ncol(Coverage)]),
-                    Ave_Depth=round(rowMeans(Coverage[,3:ncol(Coverage)]), digits=2),
-                    Coverage[,3:ncol(Coverage)])
-} else {
-  Coverage <- cbind(Coverage[,1:2],
-                    Total_Depth=Coverage[,3],
-                    Ave_Depth=Coverage[,3],
-                    Coverage[,3])
-  colnames(Coverage) <- c(colnames(Coverage)[1:(ncol(Coverage)-1)], strsplit(filenames, split=".c")[[1]][1])
+read_coverage <- function(){
+  print("Reading in Coverage File")
+  coverage <- read.table("../Dependent_Files/Coverage_IntronsExons.csv",
+                         header=TRUE,
+                         quote="\"",
+                         sep=",",
+                         stringsAsFactors=FALSE)
+  return(coverage)
 }
 
 
-#Function to determine the number of loci for each sample with depth >= threshold
-nLociOverThreshold <- function(threshold){
-  sumThreshold <- numeric(length=(ncol(Coverage)-3))
-  for(i in 1:length(sumThreshold)){
-    sumThreshold[i] <- sum(Coverage[,(i+3)]>=threshold)
+get_coverage_files <- function(filepath){
+  filenames <- Sys.glob(paste0(filepath,
+                               "coverage/*coverage"))
+  return(filenames)
+}
+
+
+make_prefixes <- function(filenames, filepath){
+  prefixes <- gsub('.coverage',
+                 '',
+                 filenames,
+                 fixed=TRUE)
+  prefixes <- gsub(paste0(filepath, 'coverage/'),
+                 '',
+                 prefixes)
+  return(prefixes)
+}
+
+
+import_coverage_data <- function(coverage_files, coverage, prefixes){
+  print("Importing coverage data")
+  for(i in 1:length(coverage_files)){
+    coverage <- cbind(coverage, read.csv(file=coverage_files[i],
+                                         sep="\t",
+                                         stringsAsFactors=FALSE,
+                                         colClasses=c("NULL", "NULL", "NULL", NA)))
+    colnames(coverage) <- c(colnames(coverage)[1:(ncol(coverage)-1)], prefixes[i])
   }
-  return(sumThreshold)
+  return(coverage)
 }
 
-#Generate matrix to fit underneath Coverage in the csv file, giving statistics for each
-#sample
-print("Generating Statistics")
-nLoci_10 <- nLociOverThreshold(10)
-nLoci_20 <- nLociOverThreshold(20)
-nLoci_50 <- nLociOverThreshold(50)
-percentLoci_10 <- round((nLoci_10/nrow(Coverage))*100, digits=2)
-percentLoci_20 <- round((nLoci_20/nrow(Coverage))*100, digits=2)
-percentLoci_50 <- round((nLoci_50/nrow(Coverage))*100, digits=2)
-sample_ave_depth <- round(unname(colMeans(Coverage[,4:ncol(Coverage)])), digits=2)
-sample_max_depth <- numeric(length=(ncol(Coverage)-3))
-for(i in 1:length(sample_max_depth)){
-  sample_max_depth[i] <- max(Coverage[,(i+3)])
-}
-statsMatrix <- rbind(nLoci_10, percentLoci_10,
-                     nLoci_20, percentLoci_20,
-                     nLoci_50, percentLoci_50,
-                     sample_ave_depth,
-                     sample_max_depth)
-rm(nLoci_10,
-   nLoci_20, nLoci_50,
-   percentLoci_10, percentLoci_20,
-   percentLoci_50, sample_ave_depth,
-   sample_max_depth)
-statsMatrix <- cbind(c("# > 10",
-                           "% > 10",
-                           "# > 20",
-                           "% > 20",
-                           "# > 50",
-                           "% > 50",
-                           "Ave. Depth",
-                           "Max Depth"), statsMatrix)
 
-#Add column to Coverage which gives the number of samples with depth < 20 at each locus
-samples_below_20 <- numeric(length=nrow(Coverage))
-for(i in 1:length(samples_below_20)){
-  samples_below_20[i] <- sum(Coverage[i, 5:ncol(Coverage)]<20)
+remove_introns <- function(coverage){
+  coverage <- coverage[grepl("Exon", coverage[,1]),]
+  rownames(coverage) <- NULL
+  return(coverage)
 }
-Coverage <- cbind(Coverage, samples_below_20)
-rm(samples_below_20)
 
-#Generate columns for Coverage which show how many duplicates of a sample cover that locus
-filenames <- filenames[grepl("dup", tolower(filenames))]
-if(length(filenames)>1){
-  filenames <- unique(unlist(strsplit(filenames, "_"))[seq(1,(2*length(filenames)),2)])
+
+depth_at_locus <- function(coverage, filenames, filepath, prefixes){
+  if(length(filenames)>1){
+    coverage <- cbind(coverage[, 1:2],
+                      Total_Depth=rowSums(coverage[, 3:ncol(coverage)]),
+                      Ave_Depth=round(rowMeans(coverage[, 3:ncol(coverage)]), digits=2),
+                      coverage[, 3:ncol(coverage)])
+  } else {
+    coverage <- cbind(coverage[, 1:2],
+                      Total_Depth=coverage[, 3],
+                      Ave_Depth=coverage[, 3],
+                      coverage[, 3])
+    colnames(coverage) <- c(colnames(coverage)[1:(ncol(coverage)-1)],
+                            prefixes)
+  }
+  return(coverage)
 }
-generateSuffix <- function(filePrefix){
-  indices <- grep(filePrefix, colnames(Coverage))
-  fullNames <- colnames(Coverage)[indices]
-  suffixes <- unlist(strsplit(fullNames, paste0(filePrefix,"_")))
+
+
+n_loci_over_threshold <- function(threshold, coverage){
+  sum_threshold <- numeric(length=(ncol(coverage)-3))
+  for(i in 1:length(sum_threshold)){
+    sum_threshold[i] <- sum(coverage[, (i+3)]>=threshold)
+  }
+  return(sum_threshold)
+}
+
+
+make_stats_matrix <- function(coverage){
+  print("Generating Statistics")
+  n_loci_10 <- n_loci_over_threshold(10, coverage)
+  n_loci_20 <- n_loci_over_threshold(20, coverage)
+  n_loci_50 <- n_loci_over_threshold(50, coverage)
+  percentLoci_10 <- round((n_loci_10 / nrow(coverage)) * 100, digits=2)
+  percentLoci_20 <- round((n_loci_20 / nrow(coverage)) * 100, digits=2)
+  percentLoci_50 <- round((n_loci_50 / nrow(coverage)) * 100, digits=2)
+  sample_ave_depth <- round(unname(colMeans(coverage[, 4:ncol(coverage)])), digits=2)
+  sample_max_depth <- numeric(length=(ncol(coverage) - 3))
+  for(i in 1:length(sample_max_depth)){
+    sample_max_depth[i] <- max(coverage[, (i+3)])
+  }
+  stats_matrix <- rbind(n_loci_10,
+                       percentLoci_10,
+                       n_loci_20,
+                       percentLoci_20,
+                       n_loci_50,
+                       percentLoci_50,
+                       sample_ave_depth,
+                       sample_max_depth)
+  stats_matrix <- cbind(c("# > 10",
+                         "% > 10",
+                         "# > 20",
+                         "% > 20",
+                         "# > 50",
+                         "% > 50",
+                         "Ave. Depth",
+                         "Max Depth"),
+                       stats_matrix)
+  return(stats_matrix)
+}
+
+
+get_samples_below_20 <- function(coverage){
+  samples_below_20 <- numeric(length=nrow(coverage))
+  for(i in 1:length(samples_below_20)){
+    samples_below_20[i] <- sum(coverage[i, 5:ncol(coverage)]<20)
+  }
+  coverage <- cbind(coverage, samples_below_20)
+  return(coverage)
+}
+
+
+get_dup_prefixes <- function(prefixes){
+  prefixes <- prefixes[grepl("dup", tolower(prefixes))]
+  if(length(prefixes)>1){
+    prefixes <- unique(unlist(strsplit(prefixes, "_"))[seq(1, (2*length(prefixes)), 2)])
+  }
+  return(prefixes)
+}
+
+
+generate_suffix <- function(prefix, coverage){
+  indices <- grep(prefix, colnames(coverage))
+  full_names <- colnames(coverage)[indices]
+  suffixes <- unlist(strsplit(full_names, paste0(prefix,"_")))
   suffixes <- suffixes[seq(2, length(suffixes), 2)]
   return(suffixes)
 }
-createSampleFailvec <- function(filePrefix){
-  suffixes <- generateSuffix(filePrefix)
-  indices <- grep(filePrefix, colnames(Coverage))
-  tempFrame <- Coverage[,c(1,indices)]
-  failVec <- character(length=nrow(Coverage))
-  for(i in 1:nrow(tempFrame)){
-    binaryVec <- tempFrame[i,2:ncol(tempFrame)]>=20
-    if(sum(binaryVec)==length(suffixes)){
-      failVec[i] <- "Covered"
+
+
+create_sample_fail_vec <- function(prefix, coverage){
+  suffixes <- generate_suffix(prefix, coverage)
+  indices <- grep(prefix, colnames(coverage))
+  temp_frame <- coverage[, c(1, indices)]
+  fail_vec <- character(length=nrow(coverage))
+  for(i in 1:nrow(temp_frame)){
+    binary_vec <- temp_frame[i, 2:ncol(temp_frame)]>=20
+    if(sum(binary_vec)==length(suffixes)){
+      fail_vec[i] <- "Covered"
     }
-    else if(sum(binaryVec)==0){
-      failVec[i] <- "All Failed"
+    else if(sum(binary_vec)==0){
+      fail_vec[i] <- "All Failed"
     }
     else{
-      failVec[i] <- paste0(paste(suffixes[!binaryVec], collapse=" and "), " Failed")
+      fail_vec[i] <- paste0(paste(suffixes[!binary_vec], collapse=" and "), " Failed")
     }
   }
-  return(failVec)
+  return(fail_vec)
 }
 
-print("Adding failure at Locus data")
-for(filePrefix in filenames){
-  print(filePrefix)
-  failVec <- createSampleFailvec(filePrefix)
-  CoverageNames <- c(colnames(Coverage), filePrefix)
-  Coverage <- cbind(Coverage, failVec)
-  colnames(Coverage) <- CoverageNames
+
+add_failure_at_locus <- function(coverage, prefixes){
+  prefixes <- get_dup_prefixes(prefixes)
+  print("Adding failure at Locus data")
+  for(prefix in prefixes){
+    print(prefix)
+    fail_vec <- create_sample_fail_vec(prefix, coverage)
+    coverage_names <- c(colnames(coverage), prefix)
+    coverage <- cbind(coverage, fail_vec)
+    colnames(coverage) <- coverage_names
+  }
+  return(coverage)
 }
 
-#Write Coverage to file
-print("Writing to file")
-write.csv(Coverage, file=paste0(sample_Line,"_Coverage.csv"), row.names=FALSE, quote=FALSE)
 
-#Append statsMatrix
-for(i in 1:nrow(statsMatrix)){
-  line <- paste0(",,",paste(statsMatrix[i,], collapse=","))
-  write(line, file=paste0(sample_Line,"_Coverage.csv"), append=TRUE)
+write_coverage <- function(coverage, stats_matrix, filepath){
+  print("Writing to file")
+  write.csv(coverage,
+            file=paste0(filepath,"coverage/Coverage.csv"),
+            row.names=FALSE,
+            quote=FALSE)
+  for(i in 1:nrow(stats_matrix)){
+    line <- paste0(",,",
+                   paste(stats_matrix[i,],
+                         collapse=","))
+    write(line,
+          file=paste0(filepath,"coverage/Coverage.csv"),
+          append=TRUE)
+  }
+  print("Done")
 }
-print("Done")
+
+
+main <- function(){
+  args = commandArgs(trailingOnly=TRUE)
+  if(length(args)!=1){
+    stop("Haloplex_coverageSummary.R only accepts one input")
+  }
+  if(args[1]=="h" | args[1]=="help"){
+    stop("Usage: ./Haloplex_coverageSummary.R /path/to/working/directory/")
+  }
+  filepath <- args[1]
+  if(substr(filepath, start=nchar(filepath), stop=nchar(filepath)) != '/'){
+    filepath <- paste0(filepath, '/')
+  }
+  print(paste("filepath is", filepath))
+  coverage <- read_coverage()
+  coverage_files <- get_coverage_files(filepath)
+  prefixes <- make_prefixes(coverage_files, filepath)
+  coverage <- import_coverage_data(coverage_files, coverage, prefixes)
+  coverage <- remove_introns(coverage)
+  coverage <- depth_at_locus(coverage, coverage_files, filepath, prefixes)
+  stats_matrix <- make_stats_matrix(coverage)
+  coverage <- get_samples_below_20(coverage)
+  coverage <- add_failure_at_locus(coverage, prefixes)
+  write_coverage(coverage, stats_matrix, filepath)
+}
+
+
+#main()
