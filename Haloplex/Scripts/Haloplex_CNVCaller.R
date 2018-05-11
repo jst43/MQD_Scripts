@@ -69,7 +69,7 @@ get_sample_names <- function(filepath){
 }
 
 
-runTest <- function(bamsample, fileframe, bamcount){
+runTest <- function(bamsample, fileframe, bamcount, filepath){
   #Find Columns in BamCount.dafr that have belong to BamFile sample
   matchbams <- grepl(bamsample, fileframe$bam)
   mismatchbams <- !matchbams
@@ -106,13 +106,16 @@ runTest <- function(bamsample, fileframe, bamcount){
   }
   my_cnvs <- all_exons@CNV.calls[order(all_exons@CNV.calls$BF, decreasing = TRUE),]
   my_cnvs <- my_cnvs %>% filter(BF >= 55)
-  outputFile <- paste0("CNV/",
-                       bamsample,
-                       "_CNVs.csv")
-  write.csv(my_cnvs,
-            outputFile,
-            quote=FALSE,
-            row.names=FALSE)
+  if(dim(my_cnvs)[1]!=0){
+    outputFile <- paste0(filepath,
+                         "CNV/",
+                         bamsample,
+                         "_CNVs.csv")
+    write.csv(my_cnvs,
+              outputFile,
+              quote=FALSE,
+              row.names=FALSE)
+  }
 }
 
 
@@ -138,7 +141,7 @@ main <- function(){
              showWarnings = FALSE)
   for(bam in sample_names){
     print(bam)
-    runTest(bam, fileframe, bamcount)
+    runTest(bam, fileframe, bamcount, filepath)
   }
 }
 
