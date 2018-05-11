@@ -34,42 +34,42 @@ if [ ! -d $filepath ]; then
 	exit 1
 fi
 
-if [ ! -d ${filepath}tempfiles ]; then
+if [ ! -d ${filepath}snv/tempfiles ]; then
         echo "Directory tempfiles not found"
         exit 1
 fi
 
-if [ ! -d ${filepath}pindeltemp ]; then
+if [ ! -d ${filepath}pindel/tempfiles ]; then
         echo "Directory pindeltemp not found"
         exit 1
 fi
 
-if [ ! -d ${filepath}hotspot_vcf ]; then
+if [ ! -d ${filepath}hotspot/tempfiles ]; then
         echo "Directory hotspot_vcf not found"
         exit 1
 fi
 
 #SCRIPT
 
-mkdir ${filepath}snv_anno
-mkdir ${filepath}pindel_anno
-mkdir ${filepath}hotspot_anno
+mkdir ${filepath}snv/annotated_vcf
+mkdir ${filepath}pindel/annotated_vcf
+mkdir ${filepath}hotspot/annotated_vcf
 mkdir ${filepath}Output
 
 while read pfx; do
-	for directory in tempfiles pindeltemp hotspot_vcf; do
+	for directory in snv/tempfiles pindel/tempfiles hotspot/tempfiles; do
 		echo $pfx
-		if [ $directory == "tempfiles" ]; then
+		if [ $directory == "snv/tempfiles" ]; then
 			suffix=".vcf"
-			outdir="snv_anno"
+			outdir="snv/annotated_vcf"
 			new_suffix="_snv.tsv"
-		elif [ $directory == "pindeltemp" ]; then
+		elif [ $directory == "pindel/tempfiles" ]; then
 			suffix="_DSI.bedfiltered.sorted.vcf"
-			outdir="pindel_anno"
+			outdir="pindel/annotated_vcf"
 			new_suffix="_DSI.tsv"
-		elif [ $directory == "hotspot_vcf" ]; then
+		elif [ $directory == "hotspot/tempfiles" ]; then
 			suffix="_hotspot.vcf"
-			outdir="hotspot_anno"
+			outdir="hotspot/annotated_vcf"
 			new_suffix="_hotspot.tsv"
 		fi
 		$VEP -i ${filepath}${directory}/${pfx}${suffix} \
