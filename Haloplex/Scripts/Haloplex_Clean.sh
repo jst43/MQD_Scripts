@@ -32,7 +32,7 @@ fi
 
 #SCRIPT
 
-mv ${filepath}recal_bam ${filepath}Output/
+mv ${filepath}hotspot_bam ${filepath}Output/
 mv ${filepath}realigned_recal_bam ${filepath}Output/
 
 mkdir ${filepath}generated_data
