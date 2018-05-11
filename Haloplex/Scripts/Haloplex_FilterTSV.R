@@ -131,7 +131,7 @@ get_CNV_filepaths <- function(filepath){
 }
 
 
-get_CNV_info <- function(cnv_path, tsv){
+get_CNV_info <- function(cnv_path, tsv, filepath){
   cnv <- read_csv(cnv_path)
   cnv_name <- gsub(paste0(filepath, 'CNV/'),
                    '',
@@ -162,7 +162,7 @@ add_CNV_annotation <- function(tsv, filepath){
                     stringsAsFactors=FALSE)
   cnv_paths <- get_CNV_filepaths(filepath)
   for(cnv_path in cnv_paths){
-    tsv <- get_CNV_info(cnv_path, tsv)
+    tsv <- get_CNV_info(cnv_path, tsv, filepath)
   }
   return(tsv)
 }
