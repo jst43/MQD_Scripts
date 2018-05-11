@@ -15,15 +15,15 @@ read_prefixes <- function(filepath){
 
 find_tsv_files <- function(prefixes, filepath){
   hotspot_files <- Sys.glob(paste0(filepath,
-                                   "hotspot_anno/",
+                                   "hotspot/annotated_vcf/",
                                    prefixes,
                                    "*.tsv"))
   snv_files <- Sys.glob(paste0(filepath,
-                               "snv_anno/",
+                               "snv/annotated_vcf/",
                                prefixes,
                                "*.tsv"))
   pindel_files <- Sys.glob(paste0(filepath,
-                                  "pindel_anno/",
+                                  "pindel/annotated_vcf/",
                                   prefixes,
                                   "*.tsv"))
   return(c(hotspot_files,
@@ -34,15 +34,15 @@ find_tsv_files <- function(prefixes, filepath){
 
 find_vcf_files <- function(prefixes, filepath){
   hotspot_files <- Sys.glob(paste0(filepath,
-                                   "hotspot_vcf/",
+                                   "hotspot/tempfiles/",
                                    prefixes,
                                    "*.vcf"))
   snv_files <- Sys.glob(paste0(filepath,
-                               "tempfiles/",
+                               "snv/tempfiles/",
                                prefixes,
                                "*.vcf"))
   pindel_files <- Sys.glob(paste0(filepath,
-                                  "pindeltemp/",
+                                  "pindel/tempfiles/",
                                   prefixes,
                                   "*sorted.vcf"))
   return(c(hotspot_files,
