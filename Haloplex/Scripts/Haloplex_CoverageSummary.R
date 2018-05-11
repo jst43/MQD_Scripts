@@ -186,7 +186,7 @@ write_coverage <- function(coverage, stats_matrix, filepath){
                    paste(stats_matrix[i,],
                          collapse=","))
     write(line,
-          file=paste0(filepath,"coverage/Coverage.csv"),
+          file=paste0(filepath,"Output/Coverage.csv"),
           append=TRUE)
   }
   print("Done")
