@@ -45,6 +45,9 @@ if [ ! -d ${filepath}realigned_recal_bam ]; then
         exit 1
 fi
 
+mkdir ${filepath}snv
+mkdir ${filepath}snv/tempfiles
+
 while read nolane; do
-	$java -Xmx40g -jar $GATKv3_5 -T UnifiedGenotyper -R $hg38 -I ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam -glm BOTH --dbsnp $All -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ${filepath}tempfiles/${nolane}.vcf
+	$java -Xmx40g -jar $GATKv3_5 -T UnifiedGenotyper -R $hg38 -I ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam -glm BOTH --dbsnp $All -stand_call_conf 30.0 -stand_emit_conf 10.0 -A Coverage -dcov 10000 -A AlleleBalance --max_alternate_alleles 40 -o ${filepath}snv/tempfiles/${nolane}.vcf
 done <${filepath}samples_noLane.txt
