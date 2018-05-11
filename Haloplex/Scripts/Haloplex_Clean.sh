@@ -37,12 +37,17 @@ mv ${filepath}realigned_recal_bam ${filepath}Output/
 
 mkdir ${filepath}generated_data
 
+dataname=`basename $filepath`
+
 for i in `ls ${filepath}`; do
-	if [ $i != ${filepath}'Output' ]; then
-		if [ $i != ${filepath}'generated_data' ]; then
+	if [ $i != 'Output' ]; then
+		if [ $i != 'generated_data' ]; then
 			mv $i ${filepath}generated_data/
 		fi
 	fi
 done
 
-tar cvfj ${filepath}generated_data.bz2 ${filepath}generated_data/
+tar cvfj ${filepath}${dataname}.bz2 ${filepath}generated_data/
+
+rm -r ${filepath}generated_data
+
