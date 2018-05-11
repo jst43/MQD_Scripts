@@ -48,3 +48,5 @@ mkdir ${filepath}coverage
 while read nolane; do
 	$java -Xmx40g -jar $GATKv3_8 -T DepthOfCoverage -R $hg38 -o ${filepath}coverage/${nolane}.coverage -I ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam -L $coverage_bed
 done <${filepath}samples_noLane.txt
+
+./Haloplex_CoverageSummary.R ${filepath}
