@@ -11,16 +11,21 @@ dedup_bed="../Dependent_Files/dedup_amplicons38.bed"
 coverage_bed="../Dependent_Files/coverage_amplicons38.bed"
 
 #COMMANDLINE VARIABLES
-while getopts "f:h" opt; do
+while getopts "f:th" opt; do
 	case $opt in
 		f)
 			filepath=$OPTARG >&2
+			;;
+		t)
+			trimflag='2' >&2
+			echo "Trim flag has been set"
 			;;
 		h)
 			echo "Usage: $0 [-f FILEPATH (optional)] " >&2
 			echo
 			echo "	-f		filepath to directory containing fastq.gz files"
 			echo "			if no filepath is given, $0 will use the current directory"
+			echo "  -t		set this flag to run $0 on the output of Haloplex_Trim2.py"
 			echo "	-h		display this help message"
 			exit 1
 			;;
@@ -56,28 +61,28 @@ R2_name=`grep "^R2" ${filepath}fastq_types.txt | sed -e 's|R2 type:||'`
 Index_name=`grep "Index" ${filepath}fastq_types.txt | sed -e 's|Index type:||'`
 
 #Make directories
-mkdir ${filepath}tempfiles
+mkdir ${filepath}postprocess_files
 mkdir ${filepath}dedup_data
 mkdir ${filepath}realigned_recal_bam
 
 while read lane <&3 && read nolane <&4; do
 	#Alignment 1000Genomes(Hg38)
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}trimmed_fastq/${lane}_${R1_name}.trimmed2.fastq.gz ${filepath}trimmed_fastq/${lane}_${R2_name}.trimmed2.fastq.gz > ${filepath}tempfiles/${nolane}.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}trimmed_fastq/${lane}_${R1_name}.trimmed${trimflag}.fastq.gz ${filepath}trimmed_fastq/${lane}_${R2_name}.trimmed${trimflag}.fastq.gz > ${filepath}postprocess_files/${nolane}.sam
 	#Remove Duplicates with LocatIt
-	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ${filepath}tempfiles/${nolane}_Dedup ${filepath}tempfiles/${nolane}.sam ${filepath}${lane}_${Index_name}.fastq.gz
-	mv ${filepath}tempfiles/${nolane}_Dedup.properties ${filepath}dedup_data/
+	$java -Xmx40g -jar $LocatIt -X $filepath -U -IS -OB -b $dedup_bed -o ${filepath}postprocess_files/${nolane}_Dedup ${filepath}postprocess_files/${nolane}.sam ${filepath}${lane}_${Index_name}.fastq.gz
+	mv ${filepath}postprocess_files/${nolane}_Dedup.properties ${filepath}dedup_data/
 	#Convert bam without duplicates in fastq file
-	$java -Xmx40g -jar $PICARD SamToFastq I=${filepath}tempfiles/${nolane}_Dedup.bam F=${filepath}tempfiles/${nolane}_${R1_name}.fastq F2=${filepath}tempfiles/${nolane}_${R2_name}.fastq
+	$java -Xmx40g -jar $PICARD SamToFastq I=${filepath}postprocess_files/${nolane}_Dedup.bam F=${filepath}postprocess_files/${nolane}_${R1_name}.fastq F2=${filepath}postprocess_files/${nolane}_${R2_name}.fastq
 	#Realign with bwa mem
-	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}tempfiles/${nolane}_${R1_name}.fastq ${filepath}tempfiles/${nolane}_${R2_name}.fastq > ${filepath}tempfiles/${nolane}_Dedup.sam
+	bwa mem -R "@RG\tID:<${nolane}>\tLB:LIBRARY_NAME\tSM:<${nolane}>\tPL:ILLUMINA" $hg38 ${filepath}postprocess_files/${nolane}_${R1_name}.fastq ${filepath}postprocess_files/${nolane}_${R2_name}.fastq > ${filepath}postprocess_files/${nolane}_Dedup.sam
 	#Create bam file, sort + index
-	samtools view -bS ${filepath}tempfiles/${nolane}_Dedup.sam > ${filepath}tempfiles/${nolane}.bam
-	samtools sort ${filepath}tempfiles/${nolane}.bam -o ${filepath}tempfiles/${nolane}.sorted.bam
-	samtools index ${filepath}tempfiles/${nolane}.sorted.bam
+	samtools view -bS ${filepath}postprocess_files/${nolane}_Dedup.sam > ${filepath}postprocess_files/${nolane}.bam
+	samtools sort ${filepath}postprocess_files/${nolane}.bam -o ${filepath}postprocess_files/${nolane}.sorted.bam
+	samtools index ${filepath}postprocess_files/${nolane}.sorted.bam
 	#Realigned and Indels
-	$java -Xmx40g -jar $GATKv3_5 -nt 20 -T RealignerTargetCreator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -o ${filepath}tempfiles/${nolane}.bam.list
-	$java -Xmx40g -jar $GATKv3_5 -T IndelRealigner -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -targetIntervals ${filepath}tempfiles/${nolane}.bam.list -o ${filepath}tempfiles/${nolane}.sorted.realigned.bam
+	$java -Xmx40g -jar $GATKv3_5 -nt 20 -T RealignerTargetCreator -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.bam -o ${filepath}postprocess_files/${nolane}.bam.list
+	$java -Xmx40g -jar $GATKv3_5 -T IndelRealigner -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.bam -targetIntervals ${filepath}postprocess_files/${nolane}.bam.list -o ${filepath}postprocess_files/${nolane}.sorted.realigned.bam
 	#Recalibrator and quality control
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.realigned.table
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.realigned.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.realigned.table -o ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.realigned.bam -l info -knownSites $All -o ${filepath}postprocess_files/${nolane}.sorted.realigned.table
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.realigned.bam -l INFO -BQSR ${filepath}postprocess_files/${nolane}.sorted.realigned.table -o ${filepath}realigned_recal_bam/${nolane}.sorted.realigned.recal.bam
 done 3<${filepath}samples.txt 4<${filepath}samples_noLane.txt
