@@ -88,6 +88,7 @@ get_all_vcf_cols <- function(vcf_filenames){
 read_annotation <- function(tsv_filename, prefix){
   tsv <- read_tsv(tsv_filename)
   tsv <- cbind(Sample=rep(prefix, nrow(tsv)),
+               checkBamFile=rep('',nrow(tsv)),
                tsv,
                Hotspot=rep(0, nrow(tsv)),
                SNV=rep(0, nrow(tsv)),
@@ -106,9 +107,16 @@ read_annotation <- function(tsv_filename, prefix){
                   "-",
                   names=c('Start', 'End'))
   Pos$End[which(is.na(Pos$End))] <- Pos$Start[which(is.na(Pos$End))]
+  variant_id <- paste0('chr',
+                       tsv$Location,
+                       '_',
+                       tsv$USED_REF,
+                       '>',
+                       tsv$Allele)
   tsv <- cbind(tsv,
                Chr=Loc$Chr,
-               Pos)
+               Pos,
+               variant_id)
   return(tsv)
 }
 
@@ -187,6 +195,7 @@ remove_unnecessary_cols <- function(tsv, unique_format){
            Existing_variation,
            USED_REF,
            Allele,
+           checkBamFile,
            SYMBOL,
            AD.Ref,
            AD.Alt1,
@@ -246,6 +255,7 @@ remove_unnecessary_cols <- function(tsv, unique_format){
            Chr,
            Start,
            End,
+           variant_id,
            trimmed_vcf_cols)
   return(tsv)
 }
