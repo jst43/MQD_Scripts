@@ -40,9 +40,9 @@ fi
 # SCRIPT
 
 mkdir ${filepath}hotspot
+mkdir ${filepath}hotspot/tempfiles
 mkdir ${filepath}hotspot/bam
-mkdir ${filepath}hotspot/annotated_vcf
 
 while read pfx; do
-	$java -jar $GATKv3_8 -T MuTect2 -R $hg38 -I:tumor ${filepath}recal_bam/${pfx}.sorted.recal.bam --dbsnp $dbsnp --maxReadsInRegionPerSample 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -bamout ${filepath}hotspot/bam/${pfx}.out.bam -o ${filepath}hotspot/vcf/${pfx}_hotspot.vcf -L $hotspots
+	$java -jar $GATKv3_8 -T MuTect2 -R $hg38 -I:tumor ${filepath}recal_bam/${pfx}.sorted.recal.bam --dbsnp $dbsnp --maxReadsInRegionPerSample 10000 -A Coverage -A AlleleBalance --max_alternate_alleles 40 -bamout ${filepath}hotspot/bam/${pfx}.out.bam -o ${filepath}hotspot/tempfiles/${pfx}_hotspot.vcf -L $hotspots
 done <${filepath}samples_noLane.txt
