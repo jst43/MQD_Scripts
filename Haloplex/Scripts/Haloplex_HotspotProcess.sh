@@ -38,6 +38,6 @@ fi
 mkdir ${filepath}recal_bam
 
 while read nolane; do
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l info -knownSites $All -o ${filepath}tempfiles/${nolane}.sorted.table
-	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}tempfiles/${nolane}.sorted.bam -l INFO -BQSR ${filepath}tempfiles/${nolane}.sorted.table -o ${filepath}recal_bam/${nolane}.sorted.recal.bam
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T BaseRecalibrator -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.bam -l info -knownSites $All -o ${filepath}postprocess_files/${nolane}.sorted.table
+	$java -Xmx40g -jar $GATKv3_5 -nct 20 -T PrintReads -R $hg38 -I ${filepath}postprocess_files/${nolane}.sorted.bam -l INFO -BQSR ${filepath}postprocess_files/${nolane}.sorted.table -o ${filepath}recal_bam/${nolane}.sorted.recal.bam
 done <${filepath}samples_noLane.txt
