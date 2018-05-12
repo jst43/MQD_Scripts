@@ -261,6 +261,13 @@ remove_unnecessary_cols <- function(tsv, unique_format){
 }
 
 
+get_output_name <- function(filepath){
+  directories <- strsplit(filepath, '/')[[1]]
+  name <- directories[length(directories)]
+  return(name)
+}
+
+
 main <- function(){
   args = commandArgs(trailingOnly=TRUE)
   if(length(args)!=1){
@@ -281,7 +288,8 @@ main <- function(){
   tsv <- merge_tsv(tsv)
   tsv <- calc_VAF(tsv)
   tsv <- remove_unnecessary_cols(tsv, unique_format)
-  write_tsv(tsv, paste0(filepath, 'Output/VariantCallLibrary.tsv'))
+  name <- get_output_name(filepath)
+  write_tsv(tsv, paste0(filepath, 'Output/', name, '.tsv'))
 }
 
 main()
