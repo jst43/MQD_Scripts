@@ -46,21 +46,15 @@ fi
 
 ./Haloplex_HotspotProcess.sh -f $filepath
 
-./Haloplex_SNVCaller.sh -f $filepath
-./Haloplex_IndelCaller.sh -f $filepath
-./Haloplex_HotspotCaller.sh -f $filepath
+./Haloplex_SNVCaller.sh -f $filepath & ./Haloplex_IndelCaller.sh -f $filepath & ./Haloplex_HotspotCaller.sh -f $filepath
 
-./Haloplex_Coverage.sh -f $filepath
-
-./Haloplex_CNVCaller.R $filepath
+./Haloplex_Coverage.sh -f $filepath & ./Haloplex_CNVCaller.R $filepath
 
 ./Haloplex_Annotate.sh -f $filepath
 
 ./Haloplex_MergeTSV.R $filepath
 
 ./Haloplex_FilterTSV.R $filepath
-
-./Haloplex_CoverageSummary.R $filepath
 
 ./Haloplex_Clean.sh -f $filepath
 
