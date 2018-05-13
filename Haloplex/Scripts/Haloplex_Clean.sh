@@ -43,7 +43,7 @@ dataname=`basename $filepath`
 for i in `ls ${filepath}`; do
 	if [ $i != 'Output' ]; then
 		if [ $i != 'generated_data' ]; then
-			mv $i ${filepath}generated_data/
+			mv ${filepath}${i} ${filepath}generated_data/
 		fi
 	fi
 done
