@@ -73,49 +73,51 @@ runTest <- function(bamsample, fileframe, bamcount, filepath){
   #Find Columns in BamCount.dafr that have belong to BamFile sample
   matchbams <- grepl(bamsample, fileframe$bam)
   mismatchbams <- !matchbams
-  #Generate test coverage from average of MatchBams
-  my_test <- ceiling(rowMeans(as.data.frame(bamcount[, c(rep(FALSE, 5), matchbams)])))
-  #Generate list of reference samples
-  my_ref_samples <- fileframe$bam[mismatchbams]
-  my_reference_set <- as.matrix(bamcount[, my_ref_samples])
-  #Find appropriate reference bams
-  my_choice <- select.reference.set(test.counts = my_test,
-                                    reference.counts = my_reference_set,
-                                    bin.length = (bamcount$end - bamcount$start)/ 1000,
-                                    n.bins.reduced = 10000)
-  #Create reference set to compare to test set
-  my_matrix <- as.matrix(bamcount[, my_choice$reference.choice, drop=FALSE])
-  my_reference_selected <- apply(my_matrix, MARGIN=1, FUN=sum)
-  #Fit the beta-binomial model to the data
-  all_regions <- new('ExomeDepth',
-                     test=my_test,
-                     reference=my_reference_selected,
-                     formula='cbind(test,reference) ~ 1')
-  #Call CNVs
-  all_exons <- CallCNVs(x=all_regions,
-                        transition.probability = 10^-4,
-                        chromosome=bamcount$space,
-                        start=bamcount$start,
-                        end=bamcount$end,
-                        name=bamcount$names)
-  if(all_exons[[1]] >= 0.97){
-    all_exons <- all_exons[[2]]
-  }else{
-    print('Correlation is below threshold')
-    return()
-  }
-  my_cnvs <- all_exons@CNV.calls[order(all_exons@CNV.calls$BF, decreasing = TRUE),]
-  my_cnvs <- my_cnvs %>% filter(BF >= 55)
-  if(dim(my_cnvs)[1]!=0){
-    outputFile <- paste0(filepath,
-                         "CNV/",
-                         bamsample,
-                         "_CNVs.csv")
-    write.csv(my_cnvs,
-              outputFile,
-              quote=FALSE,
-              row.names=FALSE)
-  }
+  if(any(mismatchbams==TRUE)){
+  	#Generate test coverage from average of MatchBams
+  	my_test <- ceiling(rowMeans(as.data.frame(bamcount[, c(rep(FALSE, 5), matchbams)])))
+  	#Generate list of reference samples
+  	my_ref_samples <- fileframe$bam[mismatchbams]
+  	my_reference_set <- as.matrix(bamcount[, my_ref_samples])
+  	#Find appropriate reference bams
+  	my_choice <- select.reference.set(test.counts = my_test,
+  	                                  reference.counts = my_reference_set,
+        	                            bin.length = (bamcount$end - bamcount$start)/ 1000,
+                	                    n.bins.reduced = 10000)
+  	#Create reference set to compare to test set
+  	my_matrix <- as.matrix(bamcount[, my_choice$reference.choice, drop=FALSE])
+  	my_reference_selected <- apply(my_matrix, MARGIN=1, FUN=sum)
+  	#Fit the beta-binomial model to the data
+  	all_regions <- new('ExomeDepth',
+        	             test=my_test,
+                	     reference=my_reference_selected,
+        	             formula='cbind(test,reference) ~ 1')
+  	#Call CNVs
+  	all_exons <- CallCNVs(x=all_regions,
+        	                transition.probability = 10^-4,
+                	        chromosome=bamcount$space,
+                	        start=bamcount$start,
+                	        end=bamcount$end,
+        	                name=bamcount$names)
+  	if(all_exons[[1]] >= 0.97){
+  	  all_exons <- all_exons[[2]]
+  	}else{
+  	  print('Correlation is below threshold')
+  	  return()
+  	}
+  	my_cnvs <- all_exons@CNV.calls[order(all_exons@CNV.calls$BF, decreasing = TRUE),]
+  	my_cnvs <- my_cnvs %>% filter(BF >= 55)
+  	if(dim(my_cnvs)[1]!=0){
+  	  outputFile <- paste0(filepath,
+  	                       "CNV/",
+  	                       bamsample,
+  	                       "_CNVs.csv")
+  	  write.csv(my_cnvs,
+  	            outputFile,
+  	            quote=FALSE,
+  	            row.names=FALSE)
+  	}
+   }
 }
 
 
